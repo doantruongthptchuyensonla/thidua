@@ -1,0 +1,1755 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>Hệ thống Quản lý thi đua & Báo cáo Chi đoàn - THPT Chuyên Sơn La</title>
+    
+    <!-- Preconnect tối ưu tốc độ tải Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        youth: {
+                            blue: '#005baa',
+                            dark: '#00407a',
+                            light: '#e6f0fa',
+                            accent: '#dc2626',
+                            gold: '#f59e0b',
+                            success: '#10b981'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* QUAN TRỌNG: Loại bỏ triệt để chiều cao cố định để Google Sites không bóp nghẹt trang */
+        html {
+            height: auto !important;
+            min-height: 100% !important;
+            overflow-x: hidden !important;
+            overflow-y: visible !important;
+        }
+
+        body {
+            height: auto !important;
+            min-height: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow-x: hidden !important;
+            overflow-y: visible !important;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-overflow-scrolling: touch;
+            position: relative;
+        }
+
+        /* Chiều cao chuẩn khi hiển thị iframe lồng bên trong Google Sites */
+        .embed-form-iframe {
+            width: 100%;
+            border: 0;
+            height: 850px;
+            min-height: 750px;
+        }
+        @media (min-width: 768px) {
+            .embed-form-iframe {
+                height: 1250px;
+                min-height: 1100px;
+            }
+        }
+
+        .embed-codo-iframe {
+            width: 100%;
+            border: 0;
+            height: 650px;
+            min-height: 550px;
+        }
+        @media (min-width: 768px) {
+            .embed-codo-iframe {
+                height: 800px;
+                min-height: 700px;
+            }
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 250px;
+            max-height: 350px;
+        }
+        @media (min-width: 640px) {
+            .chart-container {
+                height: 280px;
+            }
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 320px;
+            }
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased flex flex-col selection:bg-youth-blue selection:text-white pb-10">
+
+    <!-- NAVIGATION BAR -->
+    <header class="bg-youth-blue text-white shadow-md sticky top-0 z-50 flex-shrink-0">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-14 sm:h-16 gap-2">
+                <!-- Logo & Brand Title -->
+                <a href="https://sites.google.com/view/doantruongthptchuyensonla/trang-chu" class="flex items-center space-x-2 sm:space-x-3 cursor-pointer min-w-0 flex-shrink">
+                    <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-white flex items-center justify-center p-0.5 shadow-md flex-shrink-0 overflow-hidden border border-white/40">
+                        <img src="https://lh3.googleusercontent.com/d/15hYWuD3SYY83dqkUsG6agnz2KeWsrnVk" 
+                             alt="Logo THPT Chuyên Sơn La" 
+                             class="w-full h-full object-contain"
+                             referrerpolicy="no-referrer">
+                    </div>
+                    <div class="min-w-0 pr-1">
+                        <h1 class="font-bold text-xs sm:text-sm lg:text-base leading-tight uppercase tracking-tight sm:tracking-wide truncate">Đoàn THPT Chuyên Sơn La</h1>
+                        <p class="text-[10px] sm:text-xs text-blue-100 hidden lg:block truncate">Hệ thống quản lý thi đua và báo cáo chi đoàn trực tuyến</p>
+                    </div>
+                </a>
+
+                <!-- Desktop Nav -->
+                <nav class="hidden md:flex items-center space-x-1 text-xs lg:text-sm font-medium whitespace-nowrap flex-shrink-0">
+                    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn px-2.5 lg:px-3 py-2 rounded-md transition-colors bg-youth-dark text-white">🏠 TRANG CHỦ</button>
+                    <button onclick="switchTab('form')" id="nav-form" class="nav-btn px-2.5 lg:px-3 py-2 rounded-md hover:bg-youth-dark hover:text-white transition-colors text-blue-100">📝 NỘP BÁO CÁO</button>
+                    <button onclick="checkAndSwitchCoDoTab()" id="nav-codo" class="nav-btn px-2.5 lg:px-3 py-2 rounded-md hover:bg-youth-dark hover:text-white transition-colors text-blue-100">🚩 VI PHẠM CỜ ĐỎ</button>
+                    <button onclick="switchTab('tracker')" id="nav-tracker" class="nav-btn px-2.5 lg:px-3 py-2 rounded-md hover:bg-youth-dark hover:text-white transition-colors text-blue-100">📊 THI ĐUA</button>
+                    <button onclick="switchTab('docs')" id="nav-docs" class="nav-btn px-2.5 lg:px-3 py-2 rounded-md hover:bg-youth-dark hover:text-white transition-colors text-blue-100">📁 BIỂU MẪU</button>
+                    <button onclick="switchTab('contacts')" id="nav-contacts" class="nav-btn px-2.5 lg:px-3 py-2 rounded-md hover:bg-youth-dark hover:text-white transition-colors text-blue-100">✉️ LIÊN HỆ BCH</button>
+                    
+                    <div class="ml-1.5 flex items-center gap-1.5">
+                        <select id="select-week-desktop" onchange="changeWeek(this.value)" class="bg-youth-dark text-white border border-blue-400/50 text-xs rounded-lg px-2 py-1.5 font-bold outline-none cursor-pointer hover:border-white transition">
+                        </select>
+                        <button onclick="refreshData()" title="Đồng bộ lại dữ liệu từ Google Sheets" class="p-1.5 bg-youth-dark hover:bg-blue-900 border border-blue-400/50 rounded-lg text-xs">
+                            🔄
+                        </button>
+                    </div>
+                </nav>
+                  
+                <!-- Mobile Menu Button & Quick Actions -->
+                <div class="md:hidden flex items-center space-x-1 sm:space-x-1.5 flex-shrink-0">
+                    <select id="select-week-mobile" onchange="changeWeek(this.value)" class="bg-youth-dark text-white border border-blue-400/40 text-[11px] rounded-md px-1.5 py-1 font-semibold outline-none max-w-[110px] sm:max-w-none">
+                    </select>
+                    <button onclick="refreshData()" title="Đồng bộ lại" class="p-1.5 bg-youth-dark rounded-md text-xs active:bg-blue-950">🔄</button>
+                    <button onclick="toggleMobileMenu()" aria-label="Menu" class="p-1.5 rounded-md text-blue-100 hover:text-white hover:bg-youth-dark focus:outline-none text-lg">
+                        ☰
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Nav Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-youth-dark px-3 pt-2 pb-3 space-y-1 border-t border-blue-800 shadow-xl transition-all">
+            <button onclick="switchTab('dashboard'); toggleMobileMenu();" class="block w-full text-left px-3 py-2 rounded-md text-white text-sm font-medium hover:bg-youth-blue">🏠 Trang chủ</button>
+            <button onclick="switchTab('form'); toggleMobileMenu();" class="block w-full text-left px-3 py-2 rounded-md text-blue-100 text-sm font-medium hover:bg-youth-blue">📝 Nộp báo cáo</button>
+            <button onclick="checkAndSwitchCoDoTab(); toggleMobileMenu();" class="block w-full text-left px-3 py-2 rounded-md text-blue-100 text-sm font-medium hover:bg-youth-blue">🚩 Vi phạm Cờ đỏ</button>
+            <button onclick="switchTab('tracker'); toggleMobileMenu();" class="block w-full text-left px-3 py-2 rounded-md text-blue-100 text-sm font-medium hover:bg-youth-blue">📊 Thi đua</button>
+            <button onclick="switchTab('docs'); toggleMobileMenu();" class="block w-full text-left px-3 py-2 rounded-md text-blue-100 text-sm font-medium hover:bg-youth-blue">📁 Biểu Mẫu</button>
+            <button onclick="switchTab('contacts'); toggleMobileMenu();" class="block w-full text-left px-3 py-2 rounded-md text-blue-100 text-sm font-medium hover:bg-youth-blue">✉️ Liên hệ</button>
+        </div>
+    </header>
+
+    <!-- STATUS BANNER -->
+    <div id="sync-status" class="bg-blue-50 border-b border-blue-200 py-1.5 px-3 text-center text-[11px] sm:text-xs text-blue-700 font-medium flex items-center justify-center gap-1.5 flex-shrink-0">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping flex-shrink-0"></span>
+        <span id="sync-text" class="truncate">Hệ thống đang kết nối trực tuyến tới báo cáo hằng tuần...</span>
+    </div>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 flex-grow">
+
+        <!-- ==================== TAB 1: DASHBOARD ==================== -->
+        <section id="tab-dashboard" class="tab-content space-y-4 sm:space-y-6">
+            <div class="bg-gradient-to-r from-youth-blue via-blue-800 to-youth-dark rounded-xl sm:rounded-2xl p-4 sm:p-8 text-white shadow-lg relative overflow-hidden">
+                <div class="relative z-10 max-w-4xl">
+                    <span class="inline-block bg-white/20 backdrop-blur-md px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold tracking-wider uppercase mb-2 sm:mb-3 border border-white/30">
+                        CHUYỂN ĐỔI SỐ CÔNG TÁC ĐOÀN NĂM HỌC 2026 - 2027
+                    </span>
+                    <h2 class="text-lg sm:text-2xl lg:text-3xl font-extrabold tracking-tight mb-2 leading-tight">
+                        HỆ THỐNG QUẢN LÝ CÔNG TÁC ĐOÀN TRỰC TUYẾN
+                    </h2>
+                    <p class="text-blue-100 text-xs sm:text-base mb-4 sm:mb-6 leading-relaxed">
+                        Quản lý thi đua học sinh và hồ sơ Đoàn trực tuyến của Đoàn Trường THPT Chuyên Sơn La.
+                    </p>
+                    
+                    <!-- 4 NÚT HÀNG ĐẦU TIÊN -->
+                    <div class="flex flex-wrap items-center gap-2.5 sm:gap-3">
+                        <button onclick="switchTab('form')" class="flex-1 sm:flex-initial justify-center bg-youth-accent hover:bg-red-700 text-white text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl shadow-md transition transform active:scale-95 flex items-center space-x-2">
+                            <span>🚀 NỘP BÁO CÁO TUẦN</span>
+                        </button>
+
+                        <div class="flex-1 sm:flex-initial flex rounded-xl shadow-md overflow-hidden border border-white/20">
+                            <button onclick="checkAndSwitchCoDoTab()" class="flex-1 sm:flex-initial bg-amber-500 hover:bg-amber-600 text-white text-xs sm:text-sm font-bold px-4 py-2.5 transition flex items-center justify-center space-x-1.5" title="Nhập mã xem vi phạm">
+                                <span>🚩 BÁO CÁO VI PHẠM</span>
+                            </button>
+                            <button onclick="openCoDoAuthModal()" class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-2.5 transition text-xs sm:text-sm font-bold border-l border-amber-400 flex items-center justify-center space-x-1" title="Chỉ Đội Cờ đỏ nhập mã PIN để vào form chấm điểm">
+                                <span>🔒</span>
+                                <span class="hidden sm:inline">Nhập</span>
+                            </button>
+                        </div>
+
+                        <a href="https://drive.google.com/drive/folders/1pHBAUeQiUaDKo1lbFm0ysFRSKHd7iKf-7JQI7KAB-usHPbcGwZ2DlP1pGYptwI0bjHNXhz1f?usp=sharing" target="_blank" rel="noopener noreferrer" class="flex-1 sm:flex-initial justify-center bg-white text-youth-blue hover:bg-blue-50 text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl shadow-md transition transform active:scale-95 flex items-center space-x-2">
+                            <span>📁 BÁO CÁO ĐÃ NỘP</span>
+                        </a>
+
+                        <button onclick="switchTab('tracker')" class="flex-1 sm:flex-initial justify-center bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl shadow-md border border-emerald-400/40 transition transform active:scale-95 flex items-center space-x-2">
+                            <span>📋 TIẾN ĐỘ BÁO CÁO</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4">
+                <div class="bg-white p-3 sm:p-5 rounded-xl shadow-sm border border-slate-200 flex items-center space-x-3 sm:space-x-4">
+                    <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-lg bg-blue-100 text-youth-blue flex items-center justify-center font-bold text-lg sm:text-2xl flex-shrink-0">
+                        🏛️
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-[10px] sm:text-xs font-medium text-slate-500 uppercase truncate">Quy mô Chi đoàn</p>
+                        <p class="text-base sm:text-2xl font-bold text-slate-800" id="dash-total-count">34</p>
+                        <p class="text-[10px] sm:text-[11px] text-slate-400 truncate">Khối 10, 11 & 12</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-3 sm:p-5 rounded-xl shadow-sm border border-slate-200 flex items-center space-x-3 sm:space-x-4">
+                    <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-lg sm:text-2xl flex-shrink-0">
+                        ✅
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-[10px] sm:text-xs font-medium text-slate-500 uppercase truncate" id="dash-submitted-label">Đã Nộp</p>
+                        <p class="text-base sm:text-2xl font-bold text-emerald-600 truncate" id="dash-submitted-count">0 / 34</p>
+                        <p class="text-[10px] sm:text-[11px] text-emerald-600 font-medium truncate" id="dash-submitted-pct">0% hoàn thành</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-3 sm:p-5 rounded-xl shadow-sm border border-slate-200 flex items-center space-x-3 sm:space-x-4">
+                    <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-lg sm:text-2xl flex-shrink-0">
+                        ⏳
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-[10px] sm:text-xs font-medium text-slate-500 uppercase truncate">Chưa Nộp / Trễ</p>
+                        <p class="text-base sm:text-2xl font-bold text-rose-600 truncate" id="dash-pending-count">34 / 34</p>
+                        <p class="text-[10px] sm:text-[11px] text-rose-500 font-medium truncate">Cần nhắc nhở</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-3 sm:p-5 rounded-xl shadow-sm border border-slate-200 flex items-center space-x-3 sm:space-x-4">
+                    <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center font-bold text-lg sm:text-2xl flex-shrink-0">
+                        ⏰
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-[10px] sm:text-xs font-medium text-slate-500 uppercase truncate">Hạn Đóng Form</p>
+                        <p class="text-sm sm:text-lg font-bold text-slate-800 truncate">22:00 CN</p>
+                        <p class="text-[10px] sm:text-[11px] text-amber-600 font-medium truncate">Hằng tuần cố định</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts & Announcements -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+                <div class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-sm sm:text-base mb-1 flex items-center space-x-2">
+                            <span>📌 TỶ LỆ NỘP BÁO CÁO THEO KHỐI</span>
+                        </h3>
+                        <p class="text-[11px] sm:text-xs text-slate-500 mb-3 sm:mb-4">Thống kê tiến độ nộp báo cáo tuần của các Chi đoàn theo từng khối lớp.</p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="gradeSubmissionChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between gap-2 mb-1.5 sm:mb-2 flex-nowrap">
+                            <h3 class="font-bold text-slate-800 text-xs sm:text-sm lg:text-base flex items-center gap-1.5 whitespace-nowrap truncate min-w-0">
+                                <span>🏆</span>
+                                <span class="truncate">TOP 5 THI ĐUA TUẦN</span>
+                            </h3>
+                            <button onclick="switchTab('tracker')" class="text-[11px] sm:text-xs text-youth-blue hover:underline font-medium whitespace-nowrap flex-shrink-0">
+                                Xem tất cả ➔
+                            </button>
+                        </div>
+                        <p class="text-[11px] sm:text-xs text-slate-500 mb-3 sm:mb-4">Cập nhật theo tổng điểm thi đua học tập, nền nếp và phong trào.</p>
+                    </div>
+                    <div id="top5-list-container" class="space-y-2 sm:space-y-2.5 my-auto"></div>
+                </div>
+
+                <div class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between space-y-4">
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-sm sm:text-base mb-1 flex items-center space-x-2">
+                            <span>📢 THÔNG BÁO TỪ BAN CHẤP HÀNH</span>
+                        </h3>
+                        <p class="text-[11px] sm:text-xs text-slate-500 mb-3">Các chỉ đạo công tác Đoàn và phong trào thanh niên mới nhất.</p>
+                        
+                        <div class="space-y-2.5 sm:space-y-3 text-xs">
+                            <div class="p-2.5 sm:p-3 bg-blue-50 border-l-4 border-youth-blue rounded-r-lg">
+                                <span class="font-bold text-youth-blue block mb-1">CÔNG VĂN THI ĐUA</span>
+                                <p class="text-slate-700 leading-relaxed">Yêu cầu các Chi đoàn hoàn tất nộp báo cáo và minh chứng sinh hoạt trước 22h00 Chủ Nhật.</p>
+                            </div>
+                            <div class="p-2.5 sm:p-3 bg-amber-50 border-l-4 border-amber-500 rounded-r-lg">
+                                <span class="font-bold text-amber-700 block mb-1">CÔNG TRÌNH THANH NIÊN</span>
+                                <p class="text-slate-700 leading-relaxed">Đăng ký phần việc thanh niên Khối 10, 11, 12 qua mục Kho Biểu mẫu.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-3 border-t border-slate-100">
+                        <div class="flex items-center justify-between text-xs font-semibold text-slate-600 mb-2">
+                            <span>📅 LỊCH CÔNG TÁC TUẦN</span>
+                            <span class="text-youth-accent">Đang diễn ra</span>
+                        </div>
+                        <div class="text-xs space-y-1 text-slate-600">
+                            <div class="flex justify-between py-1 border-b border-slate-100">
+                                <span>• Thứ 2 - Thứ 6:</span>
+                                <span class="font-medium text-slate-800">Chấm nền nếp & Giờ học tốt</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-100">
+                                <span>• Thứ 7:</span>
+                                <span class="font-medium text-slate-800">Sinh hoạt Chi đoàn chủ điểm</span>
+                            </div>
+                            <div class="flex justify-between py-1 font-bold text-youth-accent">
+                                <span>• Chủ Nhật (22:00):</span>
+                                <span>Hạn chót gửi báo cáo form</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 2: NỘP BÁO CÁO ==================== -->
+        <section id="tab-form" class="tab-content hidden space-y-4 sm:space-y-6">
+            <div class="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 sm:gap-6">
+                    <div class="space-y-2 max-w-2xl">
+                        <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                            <span class="bg-blue-100 text-youth-blue font-bold text-[10px] sm:text-xs px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full uppercase tracking-wider">
+                                Biểu Mẫu Chính Thức
+                            </span>
+                            <span class="bg-red-100 text-youth-accent font-bold text-[10px] sm:text-xs px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full uppercase tracking-wider">
+                                Hạn: 22h00 Chủ Nhật
+                            </span>
+                        </div>
+                        <h2 class="text-lg sm:text-2xl font-extrabold text-slate-900">BÁO CÁO THI ĐUA TUẦN</h2>
+                        <p class="text-slate-600 text-xs sm:text-sm leading-relaxed">
+                            Các Chi đoàn gửi báo cáo trực tuyến qua form dưới đây. Sau khi gửi, bảng điểm và trạng thái nộp sẽ tự động đồng bộ.
+                        </p>
+                    </div>
+
+                    <div class="flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200 w-full lg:w-auto justify-between lg:justify-start">
+                        <div class="space-y-2 w-full">
+                            <a href="https://forms.gle/WrKeTeWcGVKkjsVk6" target="_blank" rel="noopener noreferrer" class="w-full inline-flex items-center justify-center gap-2 bg-youth-blue hover:bg-youth-dark text-white text-xs font-bold px-4 py-2.5 rounded-lg shadow transition">
+                                <span>🚀 MỞ FORM TRONG TAB MỚI</span>
+                            </a>
+                            <button onclick="switchTab('tracker')" class="w-full inline-flex items-center justify-center gap-1 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold px-4 py-2 rounded-lg border border-slate-300 transition">
+                                <span>📊 KIỂM TRA BÁO CÁO</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Khung nhúng Google Form Báo cáo Chi đoàn -->
+            <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="bg-slate-100 px-3 sm:px-4 py-2.5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-xs text-slate-600">
+                    <span class="font-semibold flex items-center gap-1.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                        Khung nhúng Google Form trực tuyến
+                    </span>
+                    <a href="https://forms.gle/WrKeTeWcGVKkjsVk6" target="_blank" rel="noopener noreferrer" class="text-youth-blue hover:underline font-bold text-xs">
+                        Bấm vào đây nếu không tải được form ↗
+                    </a>
+                </div>
+                <div class="w-full bg-slate-50 flex justify-center p-0 sm:p-2">
+                    <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSdRgRVSt8yrwTZSehyLUAMYB9er2z4cd2uLX5J2pGgp90b-bw/viewform?embedded=true" 
+                        class="embed-form-iframe w-full max-w-4xl bg-white border-0 shadow-sm" 
+                        title="Google Form Nộp Báo Cáo" 
+                        frameborder="0" 
+                        marginheight="0" 
+                        marginwidth="0" 
+                        loading="lazy">
+                        Đang tải Google Form...
+                    </iframe>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 3: BÁO CÁO VI PHẠM CỦA CỜ ĐỎ ==================== -->
+        <section id="tab-codo" class="tab-content hidden space-y-4 sm:space-y-6">
+            <div class="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+                    <div class="space-y-1.5 max-w-2xl">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="bg-amber-100 text-amber-800 font-bold text-[10px] sm:text-xs px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                                Giám sát nền nếp Đoàn trường
+                            </span>
+                            <span class="bg-rose-100 text-rose-700 font-bold text-[10px] sm:text-xs px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                                🔒 Nội bộ - Cần mã xem
+                            </span>
+                        </div>
+                        <h2 class="text-lg sm:text-2xl font-extrabold text-slate-900">BẢNG TỔNG HỢP VI PHẠM - ĐỘI CỜ ĐỎ</h2>
+                        <p class="text-slate-600 text-xs sm:text-sm leading-relaxed">
+                            Bảng theo dõi nền nếp, chuyên cần và vệ sinh của các Chi đoàn. Nhập mã nội bộ để tra cứu nhằm bảo vệ thông tin học sinh.
+                        </p>
+                    </div>
+
+                    <div class="flex items-center gap-2 w-full lg:w-auto">
+                        <button onclick="lockCoDoView()" id="btn-relock-codo" class="hidden text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold px-3 py-2.5 rounded-xl border border-slate-300 transition">
+                            🔒 Khóa lại
+                        </button>
+                        <button onclick="openCoDoAuthModal()" class="flex-1 lg:flex-initial inline-flex items-center justify-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs sm:text-sm font-bold px-5 py-2.5 rounded-xl shadow transition">
+                            <span>🔒 CỜ ĐỎ CHẤM ĐIỂM</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GIAO DIỆN KHÓA -->
+            <div id="codo-locked-banner" class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-200 p-8 sm:p-12 text-center space-y-4">
+                <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">
+                    🔒
+                </div>
+                <div class="max-w-md mx-auto space-y-1">
+                    <h3 class="font-bold text-slate-800 text-base sm:text-lg">KHU VỰC GIÁM SÁT NỘI BỘ ĐƯỢC BẢO VỆ</h3>
+                    <p class="text-xs text-slate-500">
+                        Để tránh rò rỉ thông tin cá nhân của học sinh ra mạng xã hội, vui lòng nhập mã bảo vệ để xem bảng vi phạm:
+                    </p>
+                </div>
+                <div class="max-w-xs mx-auto space-y-2">
+                    <input type="password" id="view-code-inline" placeholder="Nhập mã xem vi phạm..." 
+                        class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-center font-mono text-sm font-bold tracking-widest outline-none focus:border-youth-blue focus:ring-2 focus:ring-blue-100 transition uppercase"
+                        onkeydown="if(event.key === 'Enter') unlockCoDoWithInput('view-code-inline')">
+                    <p id="view-code-error" class="text-xs text-red-600 font-semibold hidden">❌ Mã xem không chính xác!</p>
+                    <button onclick="unlockCoDoWithInput('view-code-inline')" class="w-full bg-youth-blue hover:bg-youth-dark text-white font-bold py-2.5 rounded-xl shadow transition text-xs">
+                        🔓 MỞ KHÓA XEM DỮ LIỆU
+                    </button>
+                </div>
+            </div>
+
+            <!-- Khung nhúng Google Sheets -->
+            <div id="codo-sheet-wrapper" class="hidden bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="bg-slate-100 px-3 sm:px-4 py-2.5 border-b border-slate-200 flex items-center justify-between text-xs text-slate-600">
+                    <span class="font-semibold flex items-center gap-1.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                        Dữ liệu vi phạm trực tuyến (Đã mở khóa)
+                    </span>
+                    <span class="text-[11px] text-slate-400 italic">Cập nhật tự động thời gian thực</span>
+                </div>
+                <div class="w-full bg-slate-50 flex justify-center p-0 sm:p-2">
+                    <iframe id="codo-iframe" src="" 
+                        class="embed-codo-iframe w-full bg-white border-0 shadow-inner rounded-none sm:rounded-xl" 
+                        title="Báo cáo vi phạm Cờ đỏ trực tuyến" 
+                        frameborder="0" 
+                        loading="lazy">
+                        Đang tải bảng báo cáo vi phạm Cờ đỏ...
+                    </iframe>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 4: TIẾN ĐỘ & THI ĐUA ==================== -->
+        <section id="tab-tracker" class="tab-content hidden space-y-4 sm:space-y-6">
+            <div class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
+                <div>
+                    <h2 class="text-base sm:text-xl font-bold text-slate-900 flex items-center space-x-2">
+                        <span>📊 TIẾN ĐỘ NỘP VÀ THI ĐUA CÁC CHI ĐOÀN</span>
+                    </h2>
+                    <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5">Dữ liệu thời gian thực được đồng bộ trực tiếp ngay sau khi nộp báo cáo.</p>
+                </div>
+
+                <div class="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
+                    <span class="col-span-2 sm:col-span-auto inline-flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-[11px] font-bold whitespace-nowrap" title="Nếu một Chi đoàn nộp nhiều lần trong cùng tuần, hệ thống chỉ lấy báo cáo có thời gian nộp mới nhất để tính điểm và xếp hạng.">
+                        🔎 Lọc bản nộp mới nhất
+                    </span>
+
+                    <select id="select-week-filter" onchange="changeWeek(this.value)" class="text-xs font-bold px-2.5 py-2 rounded-lg border border-youth-blue bg-blue-50 text-youth-blue outline-none cursor-pointer col-span-1">
+                    </select>
+
+                    <select id="filter-grade" onchange="applyFilters()" class="text-xs font-semibold px-2.5 py-2 rounded-lg border border-slate-300 bg-slate-50 text-slate-700 col-span-1">
+                        <option value="ALL">Tất cả Khối</option>
+                        <option value="10">Khối 10</option>
+                        <option value="11">Khối 11</option>
+                        <option value="12">Khối 12</option>
+                    </select>
+
+                    <select id="filter-status" onchange="applyFilters()" class="text-xs font-semibold px-2.5 py-2 rounded-lg border border-slate-300 bg-slate-50 text-slate-700 col-span-1">
+                        <option value="ALL">Tất cả trạng thái</option>
+                        <option value="SUBMITTED">✅ Đã Nộp</option>
+                        <option value="PENDING">❌ Chưa Nộp</option>
+                    </select>
+
+                    <div class="flex items-center gap-1.5 col-span-1 sm:w-auto">
+                        <input type="text" id="search-class" oninput="applyFilters()" placeholder="Tìm tên lớp..." class="text-xs px-2.5 py-2 rounded-lg border border-slate-300 w-full sm:w-32 focus:sm:w-40 transition-all">
+                        <button onclick="refreshData()" title="Làm mới" class="text-xs px-2.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold border border-slate-300 flex-shrink-0">
+                            🔄
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Status Grid Table -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="overflow-x-auto custom-scrollbar w-full">
+                    <table class="w-full text-left border-collapse text-xs sm:text-sm whitespace-nowrap min-w-[760px]">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700 uppercase text-[10px] sm:text-[11px] font-bold border-b border-slate-200">
+                                <th class="p-2.5 sm:p-3.5">STT</th>
+                                <th class="p-2.5 sm:p-3.5">Chi Đoàn</th>
+                                <th class="p-2.5 sm:p-3.5">Khối</th>
+                                <th class="p-2.5 sm:p-3.5">Trạng Thái Nộp</th>
+                                <th class="p-2.5 sm:p-3.5">Thời Gian Nộp</th>
+                                <th class="p-2.5 sm:p-3.5">Minh Chứng</th>
+                                <th class="p-2.5 sm:p-3.5 text-right">Điểm Thi Đua</th>
+                                <th class="p-2.5 sm:p-3.5 text-center">Xếp Hạng</th>
+                                <th class="p-2.5 sm:p-3.5 text-center">Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tracker-table-body" class="divide-y divide-slate-100 font-medium"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Scoring Charts -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 pt-1">
+                <div class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="font-bold text-slate-800 text-sm sm:text-base mb-1">📈 PHÂN NHÓM ĐIỂM THI ĐUA</h3>
+                    <p class="text-[11px] sm:text-xs text-slate-500 mb-3 sm:mb-4">Phân loại theo kết quả nền nếp, học tập và hoạt động đoàn.</p>
+                    <div class="chart-container">
+                        <canvas id="scoreDistributionChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="font-bold text-slate-800 text-sm sm:text-base mb-1">⚙️ QUY ĐỊNH BÁO CÁO</h3>
+                    <div class="space-y-2.5 sm:space-y-3 text-xs text-slate-600 mt-3">
+                        <div class="p-3 bg-emerald-50 rounded-lg border-l-4 border-emerald-500">
+                            <span class="text-emerald-700 font-bold block mb-0.5">🟢 ĐÃ NỘP HỢP LỆ:</span>
+                            <p class="leading-relaxed">Báo cáo gửi trước 22h00 Chủ Nhật hằng tuần kèm minh chứng đầy đủ.</p>
+                        </div>
+                        <div class="p-3 bg-rose-50 rounded-lg border-l-4 border-rose-500">
+                            <span class="text-rose-700 font-bold block mb-0.5">🔴 CHƯA NỘP HOẶC TRỄ:</span>
+                            <p class="leading-relaxed">Quá hạn không báo cáo sẽ tính là chưa nộp và trừ điểm thi đua theo quy định Đoàn trường.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 5: KHO TÀI LIỆU ==================== -->
+        <section id="tab-docs" class="tab-content hidden space-y-4 sm:space-y-6">
+            <div class="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
+                    <div>
+                        <h2 class="text-lg sm:text-2xl font-bold text-slate-900">Kho Tài Liệu & Biểu Mẫu Chuẩn</h2>
+                        <p class="text-slate-500 text-xs sm:text-sm mt-0.5 sm:mt-1">Tải về mẫu sổ Chi đoàn, tiêu chí chấm thi đua và các biểu mẫu quy định.</p>
+                    </div>
+
+                    <div class="w-full md:w-64">
+                        <input type="text" id="doc-search" oninput="filterDocs()" placeholder="🔍 Tìm tài liệu..." class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm">
+                    </div>
+                </div>
+
+                <div id="docs-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
+                    <div class="doc-card bg-slate-50 p-4 rounded-xl border border-slate-200 hover:border-youth-blue transition group">
+                        <div class="flex items-start justify-between mb-3">
+                            <span class="text-2xl sm:text-3xl">📘</span>
+                            <span class="bg-blue-100 text-youth-blue text-[10px] font-bold px-2 py-0.5 rounded">PDF</span>
+                        </div>
+                        <h3 class="font-bold text-slate-800 text-sm group-hover:text-youth-blue transition mb-1">Tiêu chí chấm điểm thi đua tuần 2026</h3>
+                        <p class="text-xs text-slate-500 mb-4">Quy định thang điểm nền nếp, học tập, chuyên cần và phong trào.</p>
+                        <button onclick="simulateDownload('Tiêu chí chấm điểm thi đua tuần 2026.pdf')" class="w-full bg-white hover:bg-youth-blue hover:text-white text-slate-700 font-semibold text-xs py-2 rounded-lg border border-slate-300 transition">
+                            ⬇️ Tải Về Mẫu File
+                        </button>
+                    </div>
+
+                    <div class="doc-card bg-slate-50 p-4 rounded-xl border border-slate-200 hover:border-youth-blue transition group">
+                        <div class="flex items-start justify-between mb-3">
+                            <span class="text-2xl sm:text-3xl">📗</span>
+                            <span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded">XLSX</span>
+                        </div>
+                        <h3 class="font-bold text-slate-800 text-sm group-hover:text-youth-blue transition mb-1">Mẫu sổ Chi đoàn điện tử 2026</h3>
+                        <p class="text-xs text-slate-500 mb-4">Mẫu Excel theo dõi đoàn viên, đoàn phí và sinh hoạt chi đoàn định kỳ.</p>
+                        <button onclick="simulateDownload('Mẫu Sổ Chi Đoàn Điện Tử.xlsx')" class="w-full bg-white hover:bg-youth-blue hover:text-white text-slate-700 font-semibold text-xs py-2 rounded-lg border border-slate-300 transition">
+                            ⬇️ Tải Về Mẫu File
+                        </button>
+                    </div>
+
+                    <div class="doc-card bg-slate-50 p-4 rounded-xl border border-slate-200 hover:border-youth-blue transition group">
+                        <div class="flex items-start justify-between mb-3">
+                            <span class="text-2xl sm:text-3xl">📙</span>
+                            <span class="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded">DOCX</span>
+                        </div>
+                        <h3 class="font-bold text-slate-800 text-sm group-hover:text-youth-blue transition mb-1">Mẫu đăng ký công trình thanh niên</h3>
+                        <p class="text-xs text-slate-500 mb-4">Bản đăng ký phần việc thanh niên năm học 2026 - 2027.</p>
+                        <button onclick="simulateDownload('Mẫu Đăng Ký CTTN.docx')" class="w-full bg-white hover:bg-youth-blue hover:text-white text-slate-700 font-semibold text-xs py-2 rounded-lg border border-slate-300 transition">
+                            ⬇️ Tải Về Mẫu File
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 6: LIÊN HỆ ==================== -->
+        <section id="tab-contacts" class="tab-content hidden space-y-4 sm:space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                <div class="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-sm border border-slate-200">
+                    <h2 class="text-base sm:text-xl font-bold text-slate-900 mb-1">✉️ HÒM THƯ PHẢN ÁNH</h2>
+                    <p class="text-xs text-slate-500 mb-4 sm:mb-6">Tiếp nhận ý kiến đóng góp, phản ánh nền nếp thi đua tới BCH Đoàn trường.</p>
+
+                    <form onsubmit="handleFeedbackSubmit(event)" class="space-y-3 sm:space-y-4">
+                        <div>
+                            <label for="feedback-class" class="block text-xs font-bold text-slate-700 mb-1">Thuộc Chi đoàn (Tùy chọn)</label>
+                            <input id="feedback-class" type="text" placeholder="Để trống nếu muốn ẩn danh hoàn toàn" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs">
+                        </div>
+                        <div>
+                            <label for="feedback-topic" class="block text-xs font-bold text-slate-700 mb-1">Chủ đề phản ánh <span class="text-red-500">*</span></label>
+                            <select id="feedback-topic" required class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs bg-white">
+                                <option value="Góp ý phong trào">Góp ý hoạt động phong trào</option>
+                                <option value="Phản ánh nền nếp">Phản ánh nền nếp/Thi đua</option>
+                                <option value="Đề xuất hỗ trợ">Đề xuất hỗ trợ kĩ thuật</option>
+                                <option value="Khác">Ý kiến khác</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="feedback-content" class="block text-xs font-bold text-slate-700 mb-1">Nội dung chia sẻ <span class="text-red-500">*</span></label>
+                            <textarea id="feedback-content" rows="4" required placeholder="Nhập nội dung chi tiết..." class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs"></textarea>
+                        </div>
+                        <button type="submit" class="w-full bg-youth-blue hover:bg-youth-dark text-white font-bold py-2.5 rounded-xl shadow transition text-xs">
+                            📨 Gửi Ý Kiến
+                        </button>
+                    </form>
+                </div>
+
+                <div class="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                    <div>
+                        <h2 class="text-base sm:text-xl font-bold text-slate-900 mb-1">📞 THƯỜNG TRỰC BCH ĐOÀN TRƯỜNG</h2>
+                        <p class="text-xs text-slate-500 mb-4 sm:mb-6">Liên hệ trực tiếp khi cần giải đáp hoặc xác nhận thông tin thi đua.</p>
+
+                        <div class="space-y-3 sm:space-y-4">
+                            <!-- Đ/c Bí thư -->
+                            <div class="p-3 sm:p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center space-x-3 sm:space-x-4">
+                                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-youth-blue text-white flex items-center justify-center font-bold text-xs sm:text-sm flex-shrink-0">
+                                    BT
+                                </div>
+                                <div class="flex-grow text-xs min-w-0">
+                                    <h4 class="font-bold text-slate-800 text-xs sm:text-sm truncate">Đ/c Nguyễn Quốc Định - Bí thư Đoàn Trường</h4>
+                                    <p class="text-slate-500 truncate">Phụ trách chung</p>
+                                    <p class="text-youth-blue font-semibold mt-0.5">📱 Zalo: 0356.227.495</p>
+                                </div>
+                            </div>
+
+                            <!-- Đ/c PBT Nguyễn Thị Phượng -->
+                            <div class="p-3 sm:p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center space-x-3 sm:space-x-4">
+                                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs sm:text-sm flex-shrink-0">
+                                    PBT
+                                </div>
+                                <div class="flex-grow text-xs min-w-0">
+                                    <h4 class="font-bold text-slate-800 text-xs sm:text-sm truncate">Đ/c Nguyễn Thị Phượng - Phó Bí thư Đoàn Trường</h4>
+                                    <p class="text-slate-500 truncate">Phụ trách công tác nền nếp, vệ sinh</p>
+                                    <p class="text-emerald-600 font-semibold mt-0.5">📱 Zalo: 0975.699.601</p>
+                                </div>
+                            </div>
+
+                            <!-- Đ/c PBT Trần Thị Hoàn -->
+                            <div class="p-3 sm:p-3.5 bg-amber-50/50 rounded-xl border border-amber-200/80 flex items-center space-x-3 sm:space-x-4">
+                                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold text-xs sm:text-sm flex-shrink-0 shadow-sm">
+                                    PBT
+                                </div>
+                                <div class="flex-grow text-xs min-w-0">
+                                    <h4 class="font-bold text-slate-800 text-xs sm:text-sm truncate">Đ/c Trần Thị Hoàn - Phó Bí thư Đoàn Trường</h4>
+                                    <p class="text-slate-500 truncate">Phụ trách công tác văn thư, văn nghệ</p>
+                                    <p class="text-amber-600 font-semibold mt-0.5">📱 Zalo: 0979.594.126</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 sm:mt-6 p-3 bg-blue-50 rounded-xl text-xs text-slate-600 flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-0">
+                        <span>📍 Văn phòng Đoàn trường - Tầng 2 Nhà A</span>
+                        <span class="font-bold text-youth-blue">Trường THPT Chuyên Sơn La</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-youth-dark text-blue-100 text-xs py-5 sm:py-6 border-t-2 border-youth-blue shadow-lg flex-shrink-0 mt-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-center justify-between gap-4 text-center lg:text-left">
+            <!-- Cột trái: Thông tin Đoàn trường -->
+            <div class="flex-1 w-full lg:w-auto">
+                <p class="font-bold text-white text-xs sm:text-sm tracking-wide">ĐOÀN TRƯỜNG THPT CHUYÊN SƠN LA</p>
+                <p class="text-[11px] text-blue-200">Hệ thống chuyển đổi số thi đua và tiếp nhận báo cáo trực tuyến</p>
+            </div>
+
+            <!-- Ở giữa: Người thiết kế -->
+            <div class="flex-1 text-center w-full lg:w-auto whitespace-nowrap">
+                <span class="inline-block text-white font-semibold text-xs sm:text-sm bg-blue-900/40 px-3 py-1 rounded-md border border-blue-400/20">
+                    Thiết kế bởi <span class="text-amber-300 font-bold">Nguyễn Lê Thanh Trúc - Vũ Minh Châu</span>
+                </span>
+            </div>
+
+            <!-- Bên phải: Khối thống kê -->
+            <div class="flex-1 flex justify-center lg:justify-end w-full lg:w-auto">
+                <div class="bg-gradient-to-r from-blue-900/90 to-youth-dark border-2 border-amber-400/60 shadow-[0_0_15px_rgba(245,158,11,0.2)] rounded-xl px-3 sm:px-4 py-2 flex items-center justify-between gap-3 sm:gap-4 whitespace-nowrap overflow-x-auto no-scrollbar">
+                    <span class="font-extrabold text-[11px] sm:text-xs text-amber-400 tracking-wider flex items-center gap-1 uppercase bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/30 flex-shrink-0">
+                        <span>📈</span> THỐNG KÊ
+                    </span>
+
+                    <div class="flex items-center gap-1.5 flex-shrink-0" title="Đang trực tuyến">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span class="text-blue-200 text-[11px]">Online:</span>
+                        <span id="stat-online" class="font-bold text-emerald-300 font-mono text-xs">1</span>
+                    </div>
+
+                    <div class="h-3.5 w-px bg-blue-400/40 flex-shrink-0"></div>
+
+                    <div class="flex items-center gap-1.5 flex-shrink-0" title="Hôm nay">
+                        <span class="text-blue-200 text-[11px]">Hôm nay:</span>
+                        <span id="stat-today" class="font-bold text-white font-mono text-xs">...</span>
+                    </div>
+
+                    <div class="h-3.5 w-px bg-blue-400/40 flex-shrink-0"></div>
+
+                    <div class="flex items-center gap-1.5 flex-shrink-0" title="Tổng lượt xem">
+                        <span class="text-blue-200 text-[11px]">Tổng:</span>
+                        <span id="stat-total" class="font-extrabold text-amber-300 font-mono text-xs tracking-wide">...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODAL 1: NHẮC NỘP ZALO -->
+    <div id="reminder-modal" class="fixed inset-0 z-50 flex items-start justify-center pt-14 sm:pt-24 bg-black/60 backdrop-blur-sm p-4 hidden transition-all duration-300">
+        <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 border border-slate-100 transform transition-all">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                <h3 class="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                    <span>🔔</span> Tin nhắn nhắc nộp đã sẵn sàng
+                </h3>
+                <button onclick="closeReminderModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold p-1">✕</button>
+            </div>
+            
+            <p class="text-xs text-slate-600 leading-relaxed">
+                Hệ thống <b>đã tự động sao chép</b> nội dung nhắc nộp dưới đây vào bộ nhớ máy. Bạn chỉ cần mở nhóm Zalo và dán (Ctrl+V) để gửi:
+            </p>
+
+            <div id="reminder-modal-content" class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 font-mono whitespace-pre-wrap select-all max-h-40 overflow-y-auto custom-scrollbar">
+            </div>
+
+            <div class="flex gap-2 pt-1">
+                <button onclick="copyModalContentAgain()" class="flex-1 py-2.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs transition">
+                    📋 Sao chép lại
+                </button>
+                <a id="reminder-zalo-link" href="https://zalo.me/g/qhncim044" target="_blank" rel="noopener noreferrer" onclick="closeReminderModal()" class="flex-1 py-2.5 px-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs text-center shadow transition flex items-center justify-center gap-1">
+                    <span>Mở Zalo và Dán ➔</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: XÁC THỰC MÃ PIN ĐỘI CỜ ĐỎ (MÃ 2026) -->
+    <div id="codo-auth-modal" class="fixed inset-0 z-50 flex items-start justify-center pt-20 sm:pt-28 bg-black/60 backdrop-blur-sm p-4 hidden transition-all duration-300">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4 border border-slate-100 transform transition-all">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                    <span class="text-base">🔐</span> XÁC THỰC ĐỘI CỜ ĐỎ
+                </h3>
+                <button onclick="closeCoDoAuthModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold p-1">✕</button>
+            </div>
+
+            <div class="space-y-2">
+                <p class="text-xs text-slate-600 leading-relaxed">
+                    Khu vực dành riêng cho Đội Cờ đỏ trực tuần báo cáo vi phạm. Vui lòng nhập <b>mã PIN chấm điểm</b>:
+                </p>
+                <input type="password" id="codo-pin-input" placeholder="Nhập mã PIN Cờ đỏ..." maxlength="10" 
+                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-center font-mono text-base font-bold tracking-widest outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition"
+                    onkeydown="if(event.key === 'Enter') submitCoDoPin()">
+                <p id="codo-error-msg" class="text-xs text-red-600 font-semibold hidden text-center">❌ Mã PIN không chính xác. Vui lòng thử lại!</p>
+            </div>
+
+            <div class="flex gap-2 pt-1">
+                <button onclick="closeCoDoAuthModal()" class="flex-1 py-2.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs transition">
+                    Hủy bỏ
+                </button>
+                <button onclick="submitCoDoPin()" class="flex-1 py-2.5 px-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-xs shadow transition flex items-center justify-center gap-1">
+                    <span>Xác nhận ➔</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT ĐỒNG BỘ GOOGLE SHEETS & TƯƠNG TÁC -->
+    <script>
+        const SPREADSHEET_ID = "1Exg1Nk9zHbiXO5Qz2FXiAAlxWJRdEBNfH2UD0vO3DHQ";
+
+        const CO_DO_CONFIG = {
+            viewCode: "VIPHAM",
+            pin: "2026",
+            sheetEmbedUrl: "https://docs.google.com/spreadsheets/d/1X1k-r0UQW2JVMGJsjCuMwI8BYQhuTmzUVJ19aEjMErk/preview?embedded=true",
+            formUrl: "https://docs.google.com/spreadsheets/d/1X1k-r0UQW2JVMGJsjCuMwI8BYQhuTmzUVJ19aEjMErk/edit?usp=sharing"
+        };
+
+        let isCoDoViewUnlocked = false;
+
+        const DEFAULT_CLASSES = [
+            { id: "10 Toán 1", grade: "10" }, { id: "10 Toán 2", grade: "10" },
+            { id: "10 Lí", grade: "10" },     { id: "10 Hóa", grade: "10" },
+            { id: "10 Sinh", grade: "10" },    { id: "10 Tin", grade: "10" },
+            { id: "10 Văn", grade: "10" },     { id: "10 Sử", grade: "10" },
+            { id: "10 Địa", grade: "10" },     { id: "10 Anh 1", grade: "10" },
+            { id: "10 Anh 2", grade: "10" },   { id: "10 Trung", grade: "10" },
+
+            { id: "11 Toán 1", grade: "11" }, { id: "11 Toán 2", grade: "11" },
+            { id: "11 Lí", grade: "11" },     { id: "11 Hóa", grade: "11" },
+            { id: "11 Sinh", grade: "11" },    { id: "11 Tin", grade: "11" },
+            { id: "11 Văn", grade: "11" },     { id: "11 Sử", grade: "11" },
+            { id: "11 Địa", grade: "11" },     { id: "11 Anh 1", grade: "11" },
+            { id: "11 Anh 2", grade: "11" },
+
+            { id: "12 Toán 1", grade: "12" }, { id: "12 Toán 2", grade: "12" },
+            { id: "12 Lí", grade: "12" },     { id: "12 Hóa", grade: "12" },
+            { id: "12 Sinh", grade: "12" },    { id: "12 Tin", grade: "12" },
+            { id: "12 Văn", grade: "12" },     { id: "12 Sử", grade: "12" },
+            { id: "12 Địa", grade: "12" },     { id: "12 Anh 1", grade: "12" },
+            { id: "12 Anh 2", grade: "12" }
+        ];
+
+        let classDataStore = DEFAULT_CLASSES.map(c => ({
+            ...c,
+            submitted: false,
+            time: "--",
+            files: 0,
+            score: "--",
+            bonus: 0
+        }));
+
+        let gradeChartInstance = null;
+        let scoreChartInstance = null;
+        
+        function getCurrentSchoolWeek() {
+            const baseDate = new Date(2026, 8, 7, 0, 0, 0); 
+            const now = new Date();
+            const diffTime = now.getTime() - baseDate.getTime();
+            const diffWeeks = Math.floor(diffTime / (7 * 24 * 60 * 60 * 1000));
+            
+            let weekNum = 3 + diffWeeks;
+            if (weekNum < 1) weekNum = 1;
+            if (weekNum > 39) weekNum = 39;
+            return weekNum;
+        }
+
+        const currentActiveWeekNumber = getCurrentSchoolWeek();
+        let currentSelectedWeek = `Tuần ${currentActiveWeekNumber}`;
+
+        const DOM = {};
+
+        function escapeHTML(str) {
+            if (typeof str !== 'string') return str;
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                "'": '&#39;',
+                '"': '&quot;'
+            }[tag] || tag));
+        }
+
+        /* TỰ ĐỘNG THÔNG BÁO CHIỀU CAO CHO GOOGLE SITES IFRAME */
+        function notifyHeightToParent() {
+            try {
+                const totalHeight = Math.max(
+                    document.body.scrollHeight,
+                    document.body.offsetHeight,
+                    document.documentElement.scrollHeight,
+                    document.documentElement.offsetHeight
+                );
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({
+                        type: 'resize',
+                        height: totalHeight + 40
+                    }, '*');
+                }
+            } catch (e) {
+                // Không lỗi khi ở cross-origin
+            }
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            const target = document.getElementById(`tab-${tabId}`);
+            if (target) {
+                target.classList.remove('hidden');
+            }
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-youth-dark', 'text-white');
+                btn.classList.add('text-blue-100');
+            });
+
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            if (activeBtn) {
+                activeBtn.classList.add('bg-youth-dark', 'text-white');
+            }
+
+            // Đồng bộ chiều cao sau khi đổi tab
+            setTimeout(notifyHeightToParent, 150);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleMobileMenu() {
+            if (DOM.mobileMenu) DOM.mobileMenu.classList.toggle('hidden');
+            setTimeout(notifyHeightToParent, 100);
+        }
+
+        /* --- THỐNG KÊ TRUY CẬP: ONLINE 10 GIÂY + LƯU LOCALSTORAGE THEO NGÀY --- */
+        const VISITOR_CONFIG = {
+            initialTotal: 2699,
+            initialToday: 368,
+            legacyTodayDate: '2026-09-12',
+            onlineMin: 2,
+            onlineMax: 9,
+            onlineRefreshMs: 10000
+        };
+
+        function getVietnamDateKey() {
+            const now = new Date();
+            const parts = new Intl.DateTimeFormat('en-CA', {
+                timeZone: 'Asia/Ho_Chi_Minh',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            }).formatToParts(now);
+            const values = {};
+            parts.forEach(p => {
+                if (p.type !== 'literal') values[p.type] = p.value;
+            });
+            return `${values.year}-${values.month}-${values.day}`;
+        }
+
+        function safeStoredNumber(key, fallback = 0) {
+            try {
+                const raw = localStorage.getItem(key);
+                if (raw === null) return fallback;
+                const value = Number.parseInt(raw, 10);
+                return Number.isFinite(value) && value >= 0 ? value : fallback;
+            } catch (err) {
+                return fallback;
+            }
+        }
+
+        function setStoredNumber(key, value) {
+            const safeValue = Math.max(0, Number.parseInt(value, 10) || 0);
+            try {
+                localStorage.setItem(key, String(safeValue));
+            } catch (err) {}
+            return safeValue;
+        }
+
+        function refreshOnlineCount() {
+            const onlineEl = document.getElementById('stat-online');
+            if (!onlineEl) return;
+
+            const nextCount = Math.floor(
+                Math.random() * (VISITOR_CONFIG.onlineMax - VISITOR_CONFIG.onlineMin + 1)
+            ) + VISITOR_CONFIG.onlineMin;
+
+            onlineEl.style.opacity = '0.35';
+            setTimeout(() => {
+                onlineEl.textContent = String(nextCount);
+                onlineEl.style.opacity = '1';
+            }, 180);
+        }
+
+        function updateVisitorStats() {
+            const todayEl = document.getElementById('stat-today');
+            const totalEl = document.getElementById('stat-total');
+            const todayKey = getVietnamDateKey();
+            const dailyStorageKey = `thptcs_today_${todayKey}`;
+
+            let total = safeStoredNumber(
+                'thptcs_total_visits',
+                VISITOR_CONFIG.initialTotal
+            );
+
+            const hasTodayValue = (() => {
+                try {
+                    return localStorage.getItem(dailyStorageKey) !== null;
+                } catch (err) {
+                    return false;
+                }
+            })();
+
+            let today = safeStoredNumber(
+                dailyStorageKey,
+                (!hasTodayValue && todayKey === VISITOR_CONFIG.legacyTodayDate)
+                    ? VISITOR_CONFIG.initialToday
+                    : 0
+            );
+
+            let isNewSession = false;
+            try {
+                isNewSession = !sessionStorage.getItem('thptcs_visited_session_v3');
+                if (isNewSession) {
+                    sessionStorage.setItem('thptcs_visited_session_v3', 'true');
+                }
+            } catch (err) {
+                isNewSession = false;
+            }
+
+            if (isNewSession) {
+                total = setStoredNumber('thptcs_total_visits', total + 1);
+                today = setStoredNumber(dailyStorageKey, today + 1);
+            } else {
+                setStoredNumber('thptcs_total_visits', total);
+                setStoredNumber(dailyStorageKey, today);
+            }
+
+            if (todayEl) todayEl.textContent = today.toLocaleString('vi-VN');
+            if (totalEl) totalEl.textContent = total.toLocaleString('vi-VN');
+        }
+
+        /* --- XỬ LÝ MÃ XEM NỘI BỘ "VIPHAM" --- */
+        function checkAndSwitchCoDoTab() {
+            switchTab('codo');
+            if (!isCoDoViewUnlocked) {
+                const banner = document.getElementById('codo-locked-banner');
+                const wrapper = document.getElementById('codo-sheet-wrapper');
+                const btnRelock = document.getElementById('btn-relock-codo');
+                const errorMsg = document.getElementById('view-code-error');
+                const inputInline = document.getElementById('view-code-inline');
+                
+                if (banner) banner.classList.remove('hidden');
+                if (wrapper) wrapper.classList.add('hidden');
+                if (btnRelock) btnRelock.classList.add('hidden');
+                if (errorMsg) errorMsg.classList.add('hidden');
+                if (inputInline) {
+                    inputInline.value = '';
+                    setTimeout(() => inputInline.focus(), 150);
+                }
+            }
+        }
+
+        function unlockCoDoWithInput(inputId) {
+            const input = document.getElementById(inputId);
+            const errorMsg = document.getElementById('view-code-error');
+            const val = input ? input.value.trim().toUpperCase() : '';
+
+            if (val === CO_DO_CONFIG.viewCode) {
+                isCoDoViewUnlocked = true;
+                const banner = document.getElementById('codo-locked-banner');
+                const wrapper = document.getElementById('codo-sheet-wrapper');
+                const iframe = document.getElementById('codo-iframe');
+                const btnRelock = document.getElementById('btn-relock-codo');
+
+                if (banner) banner.classList.add('hidden');
+                if (wrapper) wrapper.classList.remove('hidden');
+                if (btnRelock) btnRelock.classList.remove('hidden');
+                
+                if (iframe) {
+                    iframe.src = CO_DO_CONFIG.sheetEmbedUrl;
+                }
+                setTimeout(notifyHeightToParent, 200);
+            } else {
+                if (errorMsg) errorMsg.classList.remove('hidden');
+                if (input) {
+                    input.value = '';
+                    input.focus();
+                }
+            }
+        }
+
+        function lockCoDoView() {
+            isCoDoViewUnlocked = false;
+            const banner = document.getElementById('codo-locked-banner');
+            const wrapper = document.getElementById('codo-sheet-wrapper');
+            const iframe = document.getElementById('codo-iframe');
+            const btnRelock = document.getElementById('btn-relock-codo');
+
+            if (banner) banner.classList.remove('hidden');
+            if (wrapper) wrapper.classList.add('hidden');
+            if (btnRelock) btnRelock.classList.add('hidden');
+            if (iframe) iframe.src = "";
+            setTimeout(notifyHeightToParent, 200);
+        }
+
+        /* --- XỬ LÝ MÃ PIN CHẤM ĐIỂM CỜ ĐỎ (MÃ: 2026) --- */
+        function openCoDoAuthModal() {
+            const modal = document.getElementById('codo-auth-modal');
+            const pinInput = document.getElementById('codo-pin-input');
+            const errorMsg = document.getElementById('codo-error-msg');
+            
+            if (pinInput) pinInput.value = '';
+            if (errorMsg) errorMsg.classList.add('hidden');
+            if (modal) {
+                modal.classList.remove('hidden');
+                setTimeout(() => { if (pinInput) pinInput.focus(); }, 150);
+            }
+        }
+
+        function closeCoDoAuthModal() {
+            const modal = document.getElementById('codo-auth-modal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function submitCoDoPin() {
+            const pinInput = document.getElementById('codo-pin-input');
+            const errorMsg = document.getElementById('codo-error-msg');
+            const val = pinInput ? pinInput.value.trim() : '';
+
+            if (val === CO_DO_CONFIG.pin) {
+                closeCoDoAuthModal();
+                alert("✅ Xác thực thành công! Đang mở trang báo cáo / chấm điểm của Đội Cờ đỏ.");
+                window.open(CO_DO_CONFIG.formUrl, '_blank');
+            } else {
+                if (errorMsg) errorMsg.classList.remove('hidden');
+                if (pinInput) {
+                    pinInput.value = '';
+                    pinInput.focus();
+                }
+            }
+        }
+
+        function parseCSVLine(text) {
+            let row = [''], i = 0, q = false;
+            const len = text.length;
+            for (let idx = 0; idx < len; idx++) {
+                const c = text[idx];
+                if (c === '"') {
+                    if (q && text[idx + 1] === '"') {
+                        row[i] += '"';
+                        idx++;
+                    } else {
+                        q = !q;
+                    }
+                } else if (c === ',' && !q) {
+                    row[++i] = '';
+                } else if (c === '\r') {
+                    // skip CR
+                } else if (c === '\n' && !q) {
+                    break;
+                } else {
+                    row[i] += c;
+                }
+            }
+            return row;
+        }
+
+        async function fetchGoogleSheetWeekData(weekName) {
+            if (DOM.syncText) {
+                DOM.syncText.textContent = `Đang đồng bộ dữ liệu cho [${weekName}] từ Google Sheets...`;
+            }
+
+            const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(weekName)}`;
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`Không thể tải trang tính ${weekName}`);
+
+            const csvText = await response.text();
+            const lines = csvText.trim().split(/\r?\n/);
+            if (lines.length < 2) throw new Error(`Dữ liệu ${weekName} rỗng`);
+
+            const header = parseCSVLine(lines[0]).map(h => h.trim().toLowerCase());
+            const colIndex = {
+                id: header.findIndex(h => h.includes('chi đoàn') || h.includes('lớp')),
+                grade: header.findIndex(h => h.includes('khối')),
+                status: header.findIndex(h => h.includes('trạng thái')),
+                time: header.findIndex(h => h.includes('thời gian')),
+                files: header.findIndex(h => h.includes('minh chứng') || h.includes('tệp')),
+                score: header.findIndex(h => h.includes('điểm thi đua') || h.includes('tổng điểm')),
+                bonus: header.findIndex(h => h.includes('cộng') || h.includes('phong trào'))
+            };
+
+            const sheetData = [];
+            const linesLen = lines.length;
+            for (let i = 1; i < linesLen; i++) {
+                const row = parseCSVLine(lines[i]);
+                if (!row || row.length < 2) continue;
+
+                const name = (colIndex.id >= 0 && row[colIndex.id]) ? row[colIndex.id].trim() : "";
+                if (!name) continue;
+
+                const statusRaw = (colIndex.status >= 0 && row[colIndex.status]) ? row[colIndex.status].trim().toLowerCase() : "";
+                const isSubmitted = statusRaw.includes('đã nộp') || statusRaw === 'true' || statusRaw === 'x';
+
+                let rawGrade = (colIndex.grade >= 0 && row[colIndex.grade]) ? row[colIndex.grade].trim() : "";
+                if (!rawGrade) {
+                    if (name.startsWith('10')) rawGrade = '10';
+                    else if (name.startsWith('11')) rawGrade = '11';
+                    else if (name.startsWith('12')) rawGrade = '12';
+                }
+
+                const rawScoreStr = (colIndex.score >= 0 && row[colIndex.score]) ? row[colIndex.score].trim() : "--";
+                const parsedScore = parseFloat(rawScoreStr.replace(',', '.'));
+                const scoreDisplay = (!isNaN(parsedScore) && rawScoreStr !== "--") ? parsedScore : "--";
+
+                const bonusVal = (colIndex.bonus >= 0 && row[colIndex.bonus]) ? parseFloat(row[colIndex.bonus].replace(',', '.')) : 0;
+                const filesVal = (colIndex.files >= 0 && row[colIndex.files]) ? parseInt(row[colIndex.files], 10) : (isSubmitted ? 1 : 0);
+                const timeVal = (colIndex.time >= 0 && row[colIndex.time]) ? row[colIndex.time].trim() : "--";
+
+                sheetData.push({
+                    id: name,
+                    grade: rawGrade,
+                    submitted: isSubmitted,
+                    time: timeVal,
+                    files: isNaN(filesVal) ? 0 : filesVal,
+                    score: scoreDisplay,
+                    bonus: isNaN(bonusVal) ? 0 : bonusVal
+                });
+            }
+
+            if (DOM.syncText) {
+                DOM.syncText.textContent = `Đồng bộ thành công dữ liệu [${weekName}] lúc ${new Date().toLocaleTimeString('vi-VN')}`;
+            }
+            return sheetData;
+        }
+
+        function parseReportTimestamp(value) {
+            if (value instanceof Date && !isNaN(value.getTime())) return value.getTime();
+
+            const raw = String(value ?? '').trim();
+            if (!raw || raw === '--') return NaN;
+
+            const match = raw.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+            if (match) {
+                const day = Number(match[1]);
+                const month = Number(match[2]) - 1;
+                const year = Number(match[3]);
+                const hour = Number(match[4] || 0);
+                const minute = Number(match[5] || 0);
+                const second = Number(match[6] || 0);
+                const d = new Date(year, month, day, hour, minute, second);
+                if (
+                    d.getFullYear() === year &&
+                    d.getMonth() === month &&
+                    d.getDate() === day
+                ) {
+                    return d.getTime();
+                }
+            }
+
+            const parsed = Date.parse(raw);
+            return Number.isFinite(parsed) ? parsed : NaN;
+        }
+
+        function getLatestReportsByClass(data) {
+            const latestMap = new Map();
+
+            data.forEach((item, rowIndex) => {
+                const key = String(item.id || '').trim().toLowerCase();
+                if (!key) return;
+
+                const candidate = {
+                    ...item,
+                    _sheetRowIndex: rowIndex,
+                    _timestamp: parseReportTimestamp(item.time)
+                };
+
+                const current = latestMap.get(key);
+                if (!current) {
+                    latestMap.set(key, candidate);
+                    return;
+                }
+
+                const currentTime = current._timestamp;
+                const candidateTime = candidate._timestamp;
+
+                if (Number.isFinite(candidateTime) && Number.isFinite(currentTime)) {
+                    if (candidateTime >= currentTime) latestMap.set(key, candidate);
+                    return;
+                }
+
+                if (Number.isFinite(candidateTime) && !Number.isFinite(currentTime)) {
+                    latestMap.set(key, candidate);
+                    return;
+                }
+
+                if (!Number.isFinite(candidateTime) && !Number.isFinite(currentTime)) {
+                    latestMap.set(key, candidate);
+                }
+            });
+
+            return Array.from(latestMap.values());
+        }
+
+        function getScoreForRanking(item) {
+            return typeof item.score === 'number' && Number.isFinite(item.score)
+                ? item.score
+                : -Infinity;
+        }
+
+        function getSchoolRankingMap() {
+            const sorted = [...classDataStore]
+                .filter(item => item.submitted && typeof item.score === 'number' && Number.isFinite(item.score))
+                .sort((a, b) => {
+                const scoreDiff = getScoreForRanking(b) - getScoreForRanking(a);
+                if (scoreDiff !== 0) return scoreDiff;
+
+                const bonusDiff = (Number(b.bonus) || 0) - (Number(a.bonus) || 0);
+                if (bonusDiff !== 0) return bonusDiff;
+
+                if (a.submitted !== b.submitted) return a.submitted ? -1 : 1;
+                return String(a.id).localeCompare(String(b.id), 'vi');
+            });
+
+            const rankingMap = new Map();
+            sorted.forEach((item, index) => {
+                rankingMap.set(item.id, index + 1);
+            });
+            return rankingMap;
+        }
+
+        function renderTrackerTable(data) {
+            if (!DOM.trackerTbody) return;
+
+            const rankingMap = getSchoolRankingMap();
+
+            const html = data.map((item, index) => {
+                const isScoreNum = typeof item.score === 'number';
+                const scoreText = isScoreNum ? item.score.toFixed(1) : escapeHTML(item.score);
+                const scoreColorClass = isScoreNum && item.score >= 95 ? 'text-emerald-600' : 'text-slate-700';
+                const rank = rankingMap.get(item.id) || '--';
+
+                let rankClass = 'bg-slate-100 text-slate-700 border-slate-200';
+                let rankIcon = '';
+                if (rank === 1) {
+                    rankClass = 'bg-amber-100 text-amber-700 border-amber-300';
+                    rankIcon = '🥇 ';
+                } else if (rank === 2) {
+                    rankClass = 'bg-slate-200 text-slate-700 border-slate-300';
+                    rankIcon = '🥈 ';
+                } else if (rank === 3) {
+                    rankClass = 'bg-orange-100 text-orange-700 border-orange-300';
+                    rankIcon = '🥉 ';
+                }
+
+                const statusBadge = item.submitted
+                    ? `<span class="inline-flex items-center px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[10px] sm:text-[11px] font-bold bg-emerald-100 text-emerald-800">✅ ĐÃ NỘP</span>`
+                    : `<span class="inline-flex items-center px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[10px] sm:text-[11px] font-bold bg-rose-100 text-rose-800">🔴 CHƯA NỘP</span>`;
+
+                const safeId = escapeHTML(item.id);
+                const actionBtn = item.submitted
+                    ? `<a href="https://drive.google.com/drive/folders/1pHBAUeQiUaDKo1lbFm0ysFRSKHd7iKf-7JQI7KAB-usHPbcGwZ2DlP1pGYptwI0bjHNXhz1f?usp=sharing" target="_blank" rel="noopener noreferrer" class="text-[11px] sm:text-xs text-youth-blue hover:underline font-semibold">🔍 Xem lại</a>`
+                    : `<button onclick="remindClass('${safeId}')" class="text-[11px] sm:text-xs bg-rose-50 text-rose-600 hover:bg-rose-100 px-2 py-1 rounded font-semibold transition">🔔 Nhắc nộp</button>`;
+
+                return `
+                    <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+                        <td class="p-2.5 sm:p-3.5 text-slate-400 font-mono text-[11px] sm:text-xs">${index + 1}</td>
+                        <td class="p-2.5 sm:p-3.5 font-bold text-slate-800 text-xs sm:text-sm">${safeId}</td>
+                        <td class="p-2.5 sm:p-3.5 text-slate-600 text-xs">Khối ${escapeHTML(item.grade)}</td>
+                        <td class="p-2.5 sm:p-3.5">${statusBadge}</td>
+                        <td class="p-2.5 sm:p-3.5 text-slate-500 text-[11px] sm:text-xs">${escapeHTML(item.time) || '--'}</td>
+                        <td class="p-2.5 sm:p-3.5 text-slate-600 text-[11px] sm:text-xs">${item.files > 0 ? `📂 ${item.files} tệp` : '0'}</td>
+                        <td class="p-2.5 sm:p-3.5 text-right font-bold text-xs sm:text-sm ${scoreColorClass}">${scoreText}</td>
+                        <td class="p-2.5 sm:p-3.5 text-center">
+                            <span title="Xếp hạng toàn trường trên 34 lớp"
+                                  class="inline-flex items-center justify-center min-w-[42px] px-2 py-1 rounded-lg border font-extrabold text-[11px] sm:text-xs ${rankClass}">
+                                ${rankIcon}${rank}
+                            </span>
+                        </td>
+                        <td class="p-2.5 sm:p-3.5 text-center">${actionBtn}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            DOM.trackerTbody.innerHTML = html;
+            updateSummaryKPIs();
+            setTimeout(notifyHeightToParent, 100);
+        }
+
+        function updateTop5Leaderboard(data) {
+            if (!DOM.top5Container) return;
+
+            const allTop5Overall = [...data]
+                .sort((a, b) => (typeof b.score === 'number' ? b.score : 0) - (typeof a.score === 'number' ? a.score : 0))
+                .slice(0, 5);
+            
+            DOM.top5Container.innerHTML = allTop5Overall.map((item, idx) => {
+                let bgClass = "bg-slate-50 border-slate-200";
+                let badgeBg = "bg-slate-300 text-slate-700";
+                let scoreColor = "text-slate-700";
+
+                if (idx === 0) {
+                    bgClass = "bg-amber-50 border-amber-200";
+                    badgeBg = "bg-amber-500 text-white";
+                    scoreColor = "text-amber-700";
+                } else if (idx === 1) {
+                    bgClass = "bg-slate-100 border-slate-200";
+                    badgeBg = "bg-slate-400 text-white";
+                } else if (idx === 2) {
+                    bgClass = "bg-amber-700/10 border-amber-700/20";
+                    badgeBg = "bg-amber-700 text-white";
+                    scoreColor = "text-amber-800";
+                }
+
+                const bonusText = item.bonus > 0 ? ` <span class="text-[10px] text-emerald-600 font-bold">(+${item.bonus}đ)</span>` : '';
+                const scoreDisplay = typeof item.score === 'number' ? item.score.toFixed(1) : '0.0';
+
+                return `
+                    <div class="flex items-center justify-between p-2 sm:p-2.5 rounded-lg border ${bgClass}">
+                        <div class="flex items-center space-x-2.5 sm:space-x-3">
+                            <span class="w-5 h-5 sm:w-6 sm:h-6 rounded-full font-bold text-[11px] sm:text-xs flex items-center justify-center ${badgeBg}">${idx + 1}</span>
+                            <span class="font-semibold text-slate-800 text-xs sm:text-sm">${escapeHTML(item.id)}${bonusText}</span>
+                        </div>
+                        <span class="font-bold ${scoreColor} text-xs sm:text-sm">${scoreDisplay} đ</span>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        function updateSummaryKPIs() {
+            let submittedCount = 0;
+            const total = classDataStore.length;
+            for (let i = 0; i < total; i++) {
+                if (classDataStore[i].submitted) submittedCount++;
+            }
+            const pendingCount = total - submittedCount;
+            const pct = total > 0 ? ((submittedCount / total) * 100).toFixed(1) : 0;
+
+            if (DOM.dashSubCount) DOM.dashSubCount.textContent = `${submittedCount} / ${total}`;
+            if (DOM.dashSubPct) DOM.dashSubPct.textContent = `${pct}% hoàn thành`;
+            if (DOM.dashPendingCount) DOM.dashPendingCount.textContent = `${pendingCount} / ${total}`;
+            if (DOM.dashTotalCount) DOM.dashTotalCount.textContent = total;
+        }
+
+        function applyFilters() {
+            const grade = DOM.filterGrade ? DOM.filterGrade.value : 'ALL';
+            const status = DOM.filterStatus ? DOM.filterStatus.value : 'ALL';
+            const search = DOM.searchClass ? DOM.searchClass.value.toLowerCase().trim() : '';
+
+            const filtered = classDataStore.filter(item => {
+                if (grade !== 'ALL' && item.grade !== grade) return false;
+                if (status === 'SUBMITTED' && !item.submitted) return false;
+                if (status === 'PENDING' && item.submitted) return false;
+                if (search && !item.id.toLowerCase().includes(search)) return false;
+                return true;
+            });
+
+            renderTrackerTable(filtered);
+        }
+
+        function renderCharts() {
+            if (typeof Chart === 'undefined') return;
+
+            let k10Sub = 0, k11Sub = 0, k12Sub = 0;
+            let totalK10 = 0, totalK11 = 0, totalK12 = 0;
+            let excellent = 0, good = 0, average = 0;
+
+            for (let i = 0; i < classDataStore.length; i++) {
+                const item = classDataStore[i];
+                if (item.grade === '10') {
+                    totalK10++;
+                    if (item.submitted) k10Sub++;
+                } else if (item.grade === '11') {
+                    totalK11++;
+                    if (item.submitted) k11Sub++;
+                } else if (item.grade === '12') {
+                    totalK12++;
+                    if (item.submitted) k12Sub++;
+                }
+
+                if (typeof item.score === 'number') {
+                    if (item.score >= 115) excellent++;
+                    else if (item.score >= 100) good++;
+                    else average++;
+                }
+            }
+
+            if (DOM.gradeChartCanvas) {
+                const barLabels = [`Khối 10 (${totalK10} lớp)`, `Khối 11 (${totalK11} lớp)`, `Khối 12 (${totalK12} lớp)`];
+                const submittedArr = [k10Sub, k11Sub, k12Sub];
+                const pendingArr = [totalK10 - k10Sub, totalK11 - k11Sub, totalK12 - k12Sub];
+
+                if (gradeChartInstance) {
+                    gradeChartInstance.data.labels = barLabels;
+                    gradeChartInstance.data.datasets[0].data = submittedArr;
+                    gradeChartInstance.data.datasets[1].data = pendingArr;
+                    gradeChartInstance.update();
+                } else {
+                    gradeChartInstance = new Chart(DOM.gradeChartCanvas.getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: barLabels,
+                            datasets: [
+                                { label: 'Đã nộp', data: submittedArr, backgroundColor: '#10b981', borderRadius: 6 },
+                                { label: 'Chưa nộp', data: pendingArr, backgroundColor: '#f43f5e', borderRadius: 6 }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { position: 'bottom', labels: { font: { size: 10 } } }
+                            },
+                            scales: {
+                                y: { beginAtZero: true, ticks: { stepSize: 2 } }
+                            }
+                        }
+                    });
+                }
+            }
+
+            if (DOM.scoreChartCanvas) {
+                const doughnutData = [excellent, good, average];
+                if (scoreChartInstance) {
+                    scoreChartInstance.data.datasets[0].data = doughnutData;
+                    scoreChartInstance.update();
+                } else {
+                    scoreChartInstance = new Chart(DOM.scoreChartCanvas.getContext('2d'), {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Xuất sắc (≥115đ)', 'Khá (100 - <115đ)', 'Cần cố gắng (<100đ)'],
+                            datasets: [{
+                                data: doughnutData,
+                                backgroundColor: ['#10b981', '#3b82f6', '#f59e0b']
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { position: 'bottom', labels: { font: { size: 10 } } }
+                            }
+                        }
+                    });
+                }
+            }
+        }
+
+        async function changeWeek(week) {
+            currentSelectedWeek = week;
+
+            if (DOM.selectWeekDesktop) DOM.selectWeekDesktop.value = week;
+            if (DOM.selectWeekFilter) DOM.selectWeekFilter.value = week;
+            if (DOM.selectWeekMobile) DOM.selectWeekMobile.value = week;
+            if (DOM.dashSubLabel) {
+                const isCurrent = week === `Tuần ${currentActiveWeekNumber}` ? " (Hiện tại)" : "";
+                DOM.dashSubLabel.textContent = `Đã Nộp (${week}${isCurrent})`;
+            }
+
+            await loadDataForWeek(week);
+        }
+
+        async function loadDataForWeek(week) {
+            if (DOM.trackerTbody) {
+                DOM.trackerTbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-slate-500 font-semibold text-xs">Đang tải dữ liệu thực tế ${escapeHTML(week)} từ Google Sheet...</td></tr>`;
+            }
+
+            try {
+                const data = await fetchGoogleSheetWeekData(week);
+
+                if (Array.isArray(data) && data.length > 0) {
+                    const latestData = getLatestReportsByClass(data);
+                    const sheetMap = new Map(
+                        latestData.map(item => [String(item.id).trim().toLowerCase(), item])
+                    );
+
+                    classDataStore = DEFAULT_CLASSES.map(defaultClass => {
+                        const key = defaultClass.id.trim().toLowerCase();
+                        const fromSheet = sheetMap.get(key);
+
+                        if (fromSheet) {
+                            return {
+                                ...defaultClass,
+                                submitted: Boolean(fromSheet.submitted),
+                                time: fromSheet.time || "--",
+                                files: Number.isFinite(fromSheet.files) ? fromSheet.files : 0,
+                                score: typeof fromSheet.score === 'number' ? fromSheet.score : "--",
+                                bonus: Number.isFinite(fromSheet.bonus) ? fromSheet.bonus : 0
+                            };
+                        }
+
+                        return {
+                            ...defaultClass,
+                            submitted: false,
+                            time: "--",
+                            files: 0,
+                            score: "--",
+                            bonus: 0
+                        };
+                    });
+                }
+            } catch (err) {
+                console.warn(`Lỗi đọc sheet ${week}:`, err);
+                if (DOM.syncText) {
+                    DOM.syncText.textContent = `Chưa thể lấy dữ liệu tự động cho ${week} (Kiểm tra quyền truy cập Sheet)`;
+                }
+            }
+
+            applyFilters();
+            renderCharts();
+            updateTop5Leaderboard(classDataStore);
+            setTimeout(notifyHeightToParent, 200);
+        }
+
+        function refreshData() {
+            loadDataForWeek(currentSelectedWeek);
+        }
+
+        function remindClass(className) {
+            const zaloGroupUrl = "https://zalo.me/g/qhncim044";
+            const message = `📢 [THÔNG BÁO NHẮC NỘP BÁO CÁO]\nBCH Đoàn trường nhắc nhở Chi đoàn ${className} khẩn trương hoàn thiện và gửi Báo cáo thi đua ${currentSelectedWeek} trước hạn 22h00 Chủ Nhật!`;
+
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(message).catch(() => copyFallback(message));
+            } else {
+                copyFallback(message);
+            }
+
+            showReminderModal(className, message, zaloGroupUrl);
+        }
+
+        function copyFallback(text) {
+            const tempTextArea = document.createElement("textarea");
+            tempTextArea.value = text;
+            tempTextArea.style.position = "fixed";
+            tempTextArea.style.opacity = "0";
+            document.body.appendChild(tempTextArea);
+            tempTextArea.focus();
+            tempTextArea.select();
+            try {
+                document.execCommand('copy');
+            } catch (err) {}
+            document.body.removeChild(tempTextArea);
+        }
+
+        function showReminderModal(className, message, zaloUrl) {
+            const modal = document.getElementById('reminder-modal');
+            const contentBox = document.getElementById('reminder-modal-content');
+            const zaloBtn = document.getElementById('reminder-zalo-link');
+            
+            if (contentBox) contentBox.textContent = message;
+            if (zaloBtn) zaloBtn.href = zaloUrl;
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeReminderModal() {
+            const modal = document.getElementById('reminder-modal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function copyModalContentAgain() {
+            const text = document.getElementById('reminder-modal-content').textContent;
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(() => {
+                    alert("✅ Đã sao chép lại nội dung! Bạn chỉ cần sang Zalo và bấm Dán (Ctrl+V).");
+                });
+            } else {
+                copyFallback(text);
+                alert("✅ Đã sao chép lại nội dung!");
+            }
+        }
+
+        function simulateDownload(filename) {
+            alert(`📥 Bắt đầu tải tệp biểu mẫu: ${filename}`);
+        }
+
+        function handleFeedbackSubmit(e) {
+            e.preventDefault();
+            alert("📨 Cảm ơn bạn đã gửi phản ánh! BCH Đoàn trường sẽ tiếp nhận và xử lý trong thời gian sớm nhất.");
+            e.target.reset();
+        }
+
+        function filterDocs() {
+            const query = DOM.docSearch ? DOM.docSearch.value.toLowerCase() : '';
+            const cards = document.querySelectorAll('.doc-card');
+            for (let i = 0; i < cards.length; i++) {
+                const title = cards[i].querySelector('h3').textContent.toLowerCase();
+                cards[i].classList.toggle('hidden', !title.includes(query));
+            }
+            setTimeout(notifyHeightToParent, 100);
+        }
+
+        // INIT & RESIZE LISTENER
+        window.addEventListener('DOMContentLoaded', () => {
+            DOM.mobileMenu = document.getElementById('mobile-menu');
+            DOM.syncText = document.getElementById('sync-text');
+            DOM.trackerTbody = document.getElementById('tracker-table-body');
+            DOM.top5Container = document.getElementById('top5-list-container');
+            DOM.selectWeekDesktop = document.getElementById('select-week-desktop');
+            DOM.selectWeekFilter = document.getElementById('select-week-filter');
+            DOM.selectWeekMobile = document.getElementById('select-week-mobile');
+            DOM.filterGrade = document.getElementById('filter-grade');
+            DOM.filterStatus = document.getElementById('filter-status');
+            DOM.searchClass = document.getElementById('search-class');
+            DOM.docSearch = document.getElementById('doc-search');
+            DOM.dashSubCount = document.getElementById('dash-submitted-count');
+            DOM.dashSubPct = document.getElementById('dash-submitted-pct');
+            DOM.dashPendingCount = document.getElementById('dash-pending-count');
+            DOM.dashTotalCount = document.getElementById('dash-total-count');
+            DOM.dashSubLabel = document.getElementById("dash-submitted-label");
+            DOM.gradeChartCanvas = document.getElementById('gradeSubmissionChart');
+            DOM.scoreChartCanvas = document.getElementById('scoreDistributionChart');
+
+            let weekOptionsHTML = '';
+            for (let w = 1; w <= 39; w++) {
+                const isCurrent = (w === currentActiveWeekNumber);
+                const tag = isCurrent ? " (Hiện tại)" : "";
+                const selected = isCurrent ? 'selected' : '';
+                weekOptionsHTML += `<option value="Tuần ${w}" ${selected}>📅 Tuần ${w}${tag}</option>`;
+            }
+            [DOM.selectWeekDesktop, DOM.selectWeekFilter, DOM.selectWeekMobile].forEach(sel => {
+                if (sel) sel.innerHTML = weekOptionsHTML;
+            });
+
+            refreshOnlineCount();
+            updateVisitorStats();
+            setInterval(refreshOnlineCount, VISITOR_CONFIG.onlineRefreshMs);
+            setInterval(updateVisitorStats, 60000);
+            changeWeek(`Tuần ${currentActiveWeekNumber}`);
+
+            setInterval(() => {
+                loadDataForWeek(currentSelectedWeek);
+            }, 60000);
+
+            // Bật bộ theo dõi kích thước để tự động dãn khung Google Sites
+            if (window.ResizeObserver) {
+                const resizeObserver = new ResizeObserver(() => {
+                    notifyHeightToParent();
+                });
+                resizeObserver.observe(document.body);
+            }
+            window.addEventListener('load', notifyHeightToParent);
+            window.addEventListener('resize', notifyHeightToParent);
+        });
+    </script>
+</body>
+</html>
