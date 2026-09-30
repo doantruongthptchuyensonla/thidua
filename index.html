@@ -38,7 +38,7 @@
     </script>
     
     <style>
-        /* QUAN TRỌNG: Loại bỏ triệt để chiều cao cố định để Google Sites không bóp nghẹt trang */
+        /* Loại bỏ chiều cao cố định để Google Sites không bóp nghẹt trang */
         html {
             height: auto !important;
             min-height: 100% !important;
@@ -209,7 +209,6 @@
                         Quản lý thi đua học sinh và hồ sơ Đoàn trực tuyến của Đoàn Trường THPT Chuyên Sơn La.
                     </p>
                     
-                    <!-- 4 NÚT HÀNG ĐẦU TIÊN -->
                     <div class="flex flex-wrap items-center gap-2.5 sm:gap-3">
                         <button onclick="switchTab('form')" class="flex-1 sm:flex-initial justify-center bg-youth-accent hover:bg-red-700 text-white text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl shadow-md transition transform active:scale-95 flex items-center space-x-2">
                             <span>🚀 NỘP BÁO CÁO TUẦN</span>
@@ -493,7 +492,7 @@
                     <h2 class="text-base sm:text-xl font-bold text-slate-900 flex items-center space-x-2">
                         <span>📊 TIẾN ĐỘ NỘP VÀ THI ĐUA CÁC CHI ĐOÀN</span>
                     </h2>
-                    <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5">Dữ liệu thời gian thực được đồng bộ trực tiếp ngay sau khi nộp báo cáo.</p>
+                    <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5">Dữ liệu tự động lọc bản nộp mới nhất và xếp hạng theo tổng điểm thi đua.</p>
                 </div>
 
                 <div class="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
@@ -715,20 +714,17 @@
     <!-- FOOTER -->
     <footer class="bg-youth-dark text-blue-100 text-xs py-5 sm:py-6 border-t-2 border-youth-blue shadow-lg flex-shrink-0 mt-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-center justify-between gap-4 text-center lg:text-left">
-            <!-- Cột trái: Thông tin Đoàn trường -->
             <div class="flex-1 w-full lg:w-auto">
                 <p class="font-bold text-white text-xs sm:text-sm tracking-wide">ĐOÀN TRƯỜNG THPT CHUYÊN SƠN LA</p>
                 <p class="text-[11px] text-blue-200">Hệ thống chuyển đổi số thi đua và tiếp nhận báo cáo trực tuyến</p>
             </div>
 
-            <!-- Ở giữa: Người thiết kế -->
             <div class="flex-1 text-center w-full lg:w-auto whitespace-nowrap">
                 <span class="inline-block text-white font-semibold text-xs sm:text-sm bg-blue-900/40 px-3 py-1 rounded-md border border-blue-400/20">
                     Dự án NCKHKT của <span class="text-amber-300 font-bold">Thanh Trúc - Minh Châu</span>
                 </span>
             </div>
 
-            <!-- Bên phải: Khối thống kê -->
             <div class="flex-1 flex justify-center lg:justify-end w-full lg:w-auto">
                 <div class="bg-gradient-to-r from-blue-900/90 to-youth-dark border-2 border-amber-400/60 shadow-[0_0_15px_rgba(245,158,11,0.2)] rounded-xl px-3 sm:px-4 py-2 flex items-center justify-between gap-3 sm:gap-4 whitespace-nowrap overflow-x-auto no-scrollbar">
                     <span class="font-extrabold text-[11px] sm:text-xs text-amber-400 tracking-wider flex items-center gap-1 uppercase bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/30 flex-shrink-0">
@@ -894,7 +890,6 @@
             }[tag] || tag));
         }
 
-        /* TỰ ĐỘNG THÔNG BÁO CHIỀU CAO CHO GOOGLE SITES IFRAME */
         function notifyHeightToParent() {
             try {
                 const totalHeight = Math.max(
@@ -910,7 +905,7 @@
                     }, '*');
                 }
             } catch (e) {
-                // Không lỗi khi ở cross-origin
+                // Cross-origin safe
             }
         }
 
@@ -931,7 +926,6 @@
                 activeBtn.classList.add('bg-youth-dark', 'text-white');
             }
 
-            // Đồng bộ chiều cao sau khi đổi tab
             setTimeout(notifyHeightToParent, 150);
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -941,7 +935,6 @@
             setTimeout(notifyHeightToParent, 100);
         }
 
-        /* --- THỐNG KÊ TRUY CẬP: ONLINE 10 GIÂY + LƯU LOCALSTORAGE THEO NGÀY --- */
         const VISITOR_CONFIG = {
             initialTotal: 3699,
             initialToday: 268,
@@ -1048,7 +1041,6 @@
             if (totalEl) totalEl.textContent = total.toLocaleString('vi-VN');
         }
 
-        /* --- XỬ LÝ MÃ XEM NỘI BỘ "VIPHAM" --- */
         function checkAndSwitchCoDoTab() {
             switchTab('codo');
             if (!isCoDoViewUnlocked) {
@@ -1112,7 +1104,6 @@
             setTimeout(notifyHeightToParent, 200);
         }
 
-        /* --- XỬ LÝ MÃ PIN CHẤM ĐIỂM CỜ ĐỎ (MÃ: 2026) --- */
         function openCoDoAuthModal() {
             const modal = document.getElementById('codo-auth-modal');
             const pinInput = document.getElementById('codo-pin-input');
@@ -1242,6 +1233,7 @@
             return sheetData;
         }
 
+        // CHUYỂN ĐỔI THỜI GIAN NỘP BÁO CÁO THÀNH TIMESTAMP
         function parseReportTimestamp(value) {
             if (value instanceof Date && !isNaN(value.getTime())) return value.getTime();
 
@@ -1270,6 +1262,7 @@
             return Number.isFinite(parsed) ? parsed : NaN;
         }
 
+        // BỘ LỌC CHỈ LẤY KẾT QUẢ NỘP CUỐI CÙNG (THEO MỐC THỜI GIAN MUỘN NHẤT HOẶC DÒNG NỘP SAU CÙNG)
         function getLatestReportsByClass(data) {
             const latestMap = new Map();
 
@@ -1292,17 +1285,22 @@
                 const currentTime = current._timestamp;
                 const candidateTime = candidate._timestamp;
 
+                // 1. So sánh theo timestamp nếu cả 2 bản ghi đều có thời gian hợp lệ
                 if (Number.isFinite(candidateTime) && Number.isFinite(currentTime)) {
-                    if (candidateTime >= currentTime) latestMap.set(key, candidate);
+                    if (candidateTime >= currentTime) {
+                        latestMap.set(key, candidate);
+                    }
                     return;
                 }
 
+                // 2. Nếu một trong hai có timestamp hợp lệ -> ưu tiên bản ghi có timestamp
                 if (Number.isFinite(candidateTime) && !Number.isFinite(currentTime)) {
                     latestMap.set(key, candidate);
                     return;
                 }
 
-                if (!Number.isFinite(candidateTime) && !Number.isFinite(currentTime)) {
+                // 3. Dự phòng: Lấy dòng xuất hiện sau trong trang tính (dòng nộp mới hơn)
+                if (candidate._sheetRowIndex >= current._sheetRowIndex) {
                     latestMap.set(key, candidate);
                 }
             });
@@ -1316,19 +1314,20 @@
                 : -Infinity;
         }
 
+        // TÍNH BẢNG XẾP HẠNG TOÀN TRƯỜNG DỰA TRÊN ĐIỂM SỐ VÀ ĐIỂM THƯỞNG
         function getSchoolRankingMap() {
             const sorted = [...classDataStore]
                 .filter(item => item.submitted && typeof item.score === 'number' && Number.isFinite(item.score))
                 .sort((a, b) => {
-                const scoreDiff = getScoreForRanking(b) - getScoreForRanking(a);
-                if (scoreDiff !== 0) return scoreDiff;
+                    const scoreDiff = getScoreForRanking(b) - getScoreForRanking(a);
+                    if (scoreDiff !== 0) return scoreDiff;
 
-                const bonusDiff = (Number(b.bonus) || 0) - (Number(a.bonus) || 0);
-                if (bonusDiff !== 0) return bonusDiff;
+                    const bonusDiff = (Number(b.bonus) || 0) - (Number(a.bonus) || 0);
+                    if (bonusDiff !== 0) return bonusDiff;
 
-                if (a.submitted !== b.submitted) return a.submitted ? -1 : 1;
-                return String(a.id).localeCompare(String(b.id), 'vi');
-            });
+                    if (a.submitted !== b.submitted) return a.submitted ? -1 : 1;
+                    return String(a.id).localeCompare(String(b.id), 'vi');
+                });
 
             const rankingMap = new Map();
             sorted.forEach((item, index) => {
@@ -1380,7 +1379,7 @@
                         <td class="p-2.5 sm:p-3.5 text-slate-600 text-[11px] sm:text-xs">${item.files > 0 ? `📂 ${item.files} tệp` : '0'}</td>
                         <td class="p-2.5 sm:p-3.5 text-right font-bold text-xs sm:text-sm ${scoreColorClass}">${scoreText}</td>
                         <td class="p-2.5 sm:p-3.5 text-center">
-                            <span title="Xếp hạng toàn trường trên 34 lớp"
+                            <span title="Xếp hạng toàn trường"
                                   class="inline-flex items-center justify-center min-w-[42px] px-2 py-1 rounded-lg border font-extrabold text-[11px] sm:text-xs ${rankClass}">
                                 ${rankIcon}${rank}
                             </span>
@@ -1450,17 +1449,33 @@
             if (DOM.dashTotalCount) DOM.dashTotalCount.textContent = total;
         }
 
+        // BỘ LỌC VÀ SẮP XẾP BẢNG THI ĐUA THEO THỨ TỰ XẾP HẠNG
         function applyFilters() {
             const grade = DOM.filterGrade ? DOM.filterGrade.value : 'ALL';
             const status = DOM.filterStatus ? DOM.filterStatus.value : 'ALL';
             const search = DOM.searchClass ? DOM.searchClass.value.toLowerCase().trim() : '';
+            const rankingMap = getSchoolRankingMap();
 
+            // 1. Lọc theo tiêu chí
             const filtered = classDataStore.filter(item => {
                 if (grade !== 'ALL' && item.grade !== grade) return false;
                 if (status === 'SUBMITTED' && !item.submitted) return false;
                 if (status === 'PENDING' && item.submitted) return false;
                 if (search && !item.id.toLowerCase().includes(search)) return false;
                 return true;
+            });
+
+            // 2. Sắp xếp thứ tự: Ưu tiên theo thứ hạng (Hạng 1 -> Hạng cuối), các lớp chưa nộp/chưa có điểm xếp ở cuối
+            filtered.sort((a, b) => {
+                const rankA = rankingMap.get(a.id) ?? Infinity;
+                const rankB = rankingMap.get(b.id) ?? Infinity;
+
+                if (rankA !== rankB) {
+                    return rankA - rankB;
+                }
+
+                // Nếu cả hai cùng chưa xếp hạng, sắp xếp tự nhiên theo tên lớp
+                return String(a.id).localeCompare(String(b.id), 'vi', { numeric: true });
             });
 
             renderTrackerTable(filtered);
@@ -1577,6 +1592,7 @@
                 const data = await fetchGoogleSheetWeekData(week);
 
                 if (Array.isArray(data) && data.length > 0) {
+                    // Lọc bản nộp muộn nhất của mỗi Chi đoàn
                     const latestData = getLatestReportsByClass(data);
                     const sheetMap = new Map(
                         latestData.map(item => [String(item.id).trim().toLowerCase(), item])
@@ -1698,7 +1714,7 @@
             setTimeout(notifyHeightToParent, 100);
         }
 
-        // INIT & RESIZE LISTENER
+        // KHỞI TẠO HỆ THỐNG KHI TẢI TRANG
         window.addEventListener('DOMContentLoaded', () => {
             DOM.mobileMenu = document.getElementById('mobile-menu');
             DOM.syncText = document.getElementById('sync-text');
@@ -1740,7 +1756,6 @@
                 loadDataForWeek(currentSelectedWeek);
             }, 60000);
 
-            // Bật bộ theo dõi kích thước để tự động dãn khung Google Sites
             if (window.ResizeObserver) {
                 const resizeObserver = new ResizeObserver(() => {
                     notifyHeightToParent();
