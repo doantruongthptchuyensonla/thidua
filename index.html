@@ -7,7 +7,7 @@
     
     <!-- Preconnect tối ưu tốc độ tải Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Tailwind CSS -->
@@ -38,7 +38,6 @@
     </script>
     
     <style>
-        /* Loại bỏ chiều cao cố định để Google Sites không bóp nghẹt trang */
         html {
             height: auto !important;
             min-height: 100% !important;
@@ -58,7 +57,6 @@
             position: relative;
         }
 
-        /* Chiều cao chuẩn khi hiển thị iframe lồng bên trong Google Sites */
         .embed-form-iframe {
             width: 100%;
             border: 0;
@@ -278,6 +276,37 @@
                         <p class="text-[10px] sm:text-xs font-medium text-slate-500 uppercase truncate">Hạn Đóng Form</p>
                         <p class="text-sm sm:text-lg font-bold text-slate-800 truncate">22:00 CN</p>
                         <p class="text-[10px] sm:text-[11px] text-amber-600 font-medium truncate">Hằng tuần cố định</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== KHỐI LỊCH PHÂN CÔNG TRỰC TUẦN (MỚI) ==================== -->
+            <div class="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 mb-4 border-b border-slate-100">
+                    <div>
+                        <h3 class="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+                            <span>📋</span> PHÂN CÔNG LỊCH TRỰC BAN & CỜ ĐỎ
+                        </h3>
+                        <p class="text-xs text-slate-500">Dữ liệu phân công cập nhật trực tuyến từ trang tính <b>LichTruc</b> trên Google Sheets.</p>
+                    </div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-50 text-youth-blue border border-blue-200">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span id="current-day-label">Hôm nay: ...</span>
+                        </span>
+                        <a href="https://docs.google.com/spreadsheets/d/1Exg1Nk9zHbiXO5Qz2FXiAAlxWJRdEBNfH2UD0vO3DHQ/edit#gid=1907707096" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition" title="Mở trang tính để chỉnh sửa lịch">
+                            <span>✏️ Sửa trên Sheet</span>
+                        </a>
+                        <button onclick="fetchDutyScheduleFromSheet()" title="Làm mới lịch trực" class="p-1.5 bg-youth-dark hover:bg-blue-900 text-white rounded-lg text-xs font-bold transition">
+                            🔄
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Grid 6 ngày Thứ 2 -> Thứ 7 -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3" id="duty-schedule-grid">
+                    <div class="col-span-full py-6 text-center text-xs text-slate-400">
+                        <span class="inline-block animate-spin mr-1">🔄</span> Đang nạp lịch trực từ Google Sheet...
                     </div>
                 </div>
             </div>
@@ -863,23 +892,17 @@
         let scoreChartInstance = null;
         
         function getCurrentSchoolWeek() {
-    // Mốc quy chuẩn: 00:00:00 Thứ Bảy ngày 12/09/2026 (Mốc chuyển giao Tuần 3 -> Tuần 4)
-    // Chu kỳ tuần sẽ bắt đầu từ 00:00 Thứ Bảy đến 23:59:59 Thứ Sáu tuần sau
-    const baseDate = new Date(2026, 8, 12, 0, 0, 0); 
-    const now = new Date();
-    
-    // Tính số ngày chênh lệch
-    const diffTime = now.getTime() - baseDate.getTime();
-    const diffWeeks = Math.floor(diffTime / (7 * 24 * 60 * 60 * 1000));
-    
-    // Từ 12/09 đến hết 18/09/2026 là Tuần 3
-    // Từ 19/09 đến hết 25/09/2026 là Tuần 4
-    // Từ 26/09 đến hết 02/10/2026 là Tuần 5
-    let weekNum = 3 + diffWeeks;
-    if (diffTime < 0 && weekNum < 1) weekNum = 1;
-    if (weekNum > 39) weekNum = 39;
-    return weekNum;
-}
+            const baseDate = new Date(2026, 8, 12, 0, 0, 0); 
+            const now = new Date();
+            
+            const diffTime = now.getTime() - baseDate.getTime();
+            const diffWeeks = Math.floor(diffTime / (7 * 24 * 60 * 60 * 1000));
+            
+            let weekNum = 3 + diffWeeks;
+            if (diffTime < 0 && weekNum < 1) weekNum = 1;
+            if (weekNum > 39) weekNum = 39;
+            return weekNum;
+        }
 
         const currentActiveWeekNumber = getCurrentSchoolWeek();
         let currentSelectedWeek = `Tuần ${currentActiveWeekNumber}`;
@@ -1172,6 +1195,106 @@
             return row;
         }
 
+        // ==================== LẤY DỮ LIỆU LỊCH TRỰC TỪ TAB "LichTruc" TRÊN GOOGLE SHEETS ====================
+        async function fetchDutyScheduleFromSheet() {
+            const grid = document.getElementById('duty-schedule-grid');
+            const labelEl = document.getElementById('current-day-label');
+            if (!grid) return;
+
+            const today = new Date().getDay(); // 0: CN, 1: T2, ..., 6: T7
+            const dayNamesMap = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
+            if (labelEl) labelEl.textContent = `Hôm nay: ${dayNamesMap[today]}`;
+
+            const dayIndexMapping = {
+                "thứ hai": 1, "thứ 2": 1, "t2": 1,
+                "thứ ba": 2, "thứ 3": 2, "t3": 2,
+                "thứ tư": 3, "thứ 4": 3, "t4": 3,
+                "thứ năm": 4, "thứ 5": 4, "t5": 4,
+                "thứ sáu": 5, "thứ 6": 5, "t6": 5,
+                "thứ bảy": 6, "thứ 7": 6, "t7": 6,
+                "chủ nhật": 0, "cn": 0
+            };
+
+            try {
+                const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=LichTruc`;
+                const res = await fetch(url);
+                if (!res.ok) throw new Error("Chưa kết nối được sheet LichTruc");
+
+                const text = await res.text();
+                const lines = text.trim().split(/\r?\n/);
+                if (lines.length < 2) throw new Error("Sheet rỗng");
+
+                const scheduleList = [];
+                for (let i = 1; i < lines.length; i++) {
+                    const row = parseCSVLine(lines[i]);
+                    if (!row || !row[0]) continue;
+
+                    const dayName = row[0].trim();
+                    const dayKey = dayName.toLowerCase();
+                    const dayIdx = dayIndexMapping[dayKey] !== undefined ? dayIndexMapping[dayKey] : i;
+
+                    scheduleList.push({
+                        dayIndex: dayIdx,
+                        dayName: dayName,
+                        leader: row[1] ? row[1].trim() : "--",
+                        subLeader: row[2] ? row[2].trim() : "--",
+                        task: row[3] ? row[3].trim() : "--",
+                        shift: row[4] ? row[4].trim() : ""
+                    });
+                }
+
+                if (scheduleList.length === 0) {
+                    throw new Error("Không có dữ liệu hợp lệ trong sheet LichTruc");
+                }
+
+                grid.innerHTML = scheduleList.map(item => {
+                    const isToday = (item.dayIndex === today);
+                    const cardBorder = isToday 
+                        ? 'border-2 border-youth-blue bg-blue-50/50 shadow-md ring-2 ring-blue-200' 
+                        : 'border border-slate-200 bg-slate-50 hover:bg-white hover:border-slate-300';
+                        
+                    const headerBadge = isToday
+                        ? `<span class="bg-youth-blue text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded shadow-sm">HÔM NAY</span>`
+                        : `<span class="text-slate-400 text-[11px] font-mono">${escapeHTML(item.shift)}</span>`;
+
+                    return `
+                        <div class="rounded-xl p-3.5 transition flex flex-col justify-between ${cardBorder}">
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="font-bold text-xs sm:text-sm text-slate-800">${escapeHTML(item.dayName)}</span>
+                                    ${headerBadge}
+                                </div>
+                                <div class="space-y-2 text-xs">
+                                    <div>
+                                        <span class="text-[10px] uppercase font-bold text-slate-400 block">Trực ban BCH</span>
+                                        <span class="font-semibold text-youth-blue">${escapeHTML(item.leader)}</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-[10px] uppercase font-bold text-slate-400 block">Đội Cờ đỏ / Chi đoàn</span>
+                                        <span class="font-medium text-slate-700">${escapeHTML(item.subLeader)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-3 pt-2 border-t border-slate-200/60">
+                                <span class="text-[10px] text-slate-500 block truncate" title="${escapeHTML(item.task)}">
+                                    🎯 ${escapeHTML(item.task)}
+                                </span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+            } catch (err) {
+                console.warn("Lỗi tải lịch trực:", err);
+                grid.innerHTML = `
+                    <div class="col-span-full py-4 px-3 text-center text-xs text-amber-700 bg-amber-50 rounded-xl border border-amber-200">
+                        ⚠️ Chưa lấy được dữ liệu từ tab <b>LichTruc</b>. Vui lòng bấm vào <b>"✏️ Sửa trên Sheet"</b> để kiểm tra trang tính.
+                    </div>
+                `;
+            }
+            setTimeout(notifyHeightToParent, 100);
+        }
+
         async function fetchGoogleSheetWeekData(weekName) {
             if (DOM.syncText) {
                 DOM.syncText.textContent = `Đang đồng bộ dữ liệu cho [${weekName}] từ Google Sheets...`;
@@ -1269,7 +1392,7 @@
             return Number.isFinite(parsed) ? parsed : NaN;
         }
 
-        // BỘ LỌC CHỈ LẤY KẾT QUẢ NỘP CUỐI CÙNG (THEO MỐC THỜI GIAN MUỘN NHẤT HOẶC DÒNG NỘP SAU CÙNG)
+        // BỘ LỌC CHỈ LẤY KẾT QUẢ NỘP CUỐI CÙNG
         function getLatestReportsByClass(data) {
             const latestMap = new Map();
 
@@ -1292,7 +1415,6 @@
                 const currentTime = current._timestamp;
                 const candidateTime = candidate._timestamp;
 
-                // 1. So sánh theo timestamp nếu cả 2 bản ghi đều có thời gian hợp lệ
                 if (Number.isFinite(candidateTime) && Number.isFinite(currentTime)) {
                     if (candidateTime >= currentTime) {
                         latestMap.set(key, candidate);
@@ -1300,13 +1422,11 @@
                     return;
                 }
 
-                // 2. Nếu một trong hai có timestamp hợp lệ -> ưu tiên bản ghi có timestamp
                 if (Number.isFinite(candidateTime) && !Number.isFinite(currentTime)) {
                     latestMap.set(key, candidate);
                     return;
                 }
 
-                // 3. Dự phòng: Lấy dòng xuất hiện sau trong trang tính (dòng nộp mới hơn)
                 if (candidate._sheetRowIndex >= current._sheetRowIndex) {
                     latestMap.set(key, candidate);
                 }
@@ -1463,7 +1583,6 @@
             const search = DOM.searchClass ? DOM.searchClass.value.toLowerCase().trim() : '';
             const rankingMap = getSchoolRankingMap();
 
-            // 1. Lọc theo tiêu chí
             const filtered = classDataStore.filter(item => {
                 if (grade !== 'ALL' && item.grade !== grade) return false;
                 if (status === 'SUBMITTED' && !item.submitted) return false;
@@ -1472,7 +1591,6 @@
                 return true;
             });
 
-            // 2. Sắp xếp thứ tự: Ưu tiên theo thứ hạng (Hạng 1 -> Hạng cuối), các lớp chưa nộp/chưa có điểm xếp ở cuối
             filtered.sort((a, b) => {
                 const rankA = rankingMap.get(a.id) ?? Infinity;
                 const rankB = rankingMap.get(b.id) ?? Infinity;
@@ -1481,7 +1599,6 @@
                     return rankA - rankB;
                 }
 
-                // Nếu cả hai cùng chưa xếp hạng, sắp xếp tự nhiên theo tên lớp
                 return String(a.id).localeCompare(String(b.id), 'vi', { numeric: true });
             });
 
@@ -1599,7 +1716,6 @@
                 const data = await fetchGoogleSheetWeekData(week);
 
                 if (Array.isArray(data) && data.length > 0) {
-                    // Lọc bản nộp muộn nhất của mỗi Chi đoàn
                     const latestData = getLatestReportsByClass(data);
                     const sheetMap = new Map(
                         latestData.map(item => [String(item.id).trim().toLowerCase(), item])
@@ -1645,6 +1761,7 @@
 
         function refreshData() {
             loadDataForWeek(currentSelectedWeek);
+            fetchDutyScheduleFromSheet();
         }
 
         function remindClass(className) {
@@ -1757,10 +1874,15 @@
             updateVisitorStats();
             setInterval(refreshOnlineCount, VISITOR_CONFIG.onlineRefreshMs);
             setInterval(updateVisitorStats, 60000);
+            
+            // Tải dữ liệu thi đua tuần và Lịch trực tuần từ Sheet LichTruc
             changeWeek(`Tuần ${currentActiveWeekNumber}`);
+            fetchDutyScheduleFromSheet();
 
+            // Tự động đồng bộ mỗi 60 giây
             setInterval(() => {
                 loadDataForWeek(currentSelectedWeek);
+                fetchDutyScheduleFromSheet();
             }, 60000);
 
             if (window.ResizeObserver) {
