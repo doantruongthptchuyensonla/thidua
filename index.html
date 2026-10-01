@@ -863,16 +863,23 @@
         let scoreChartInstance = null;
         
         function getCurrentSchoolWeek() {
-            const baseDate = new Date(2026, 8, 7, 0, 0, 0); 
-            const now = new Date();
-            const diffTime = now.getTime() - baseDate.getTime();
-            const diffWeeks = Math.floor(diffTime / (7 * 24 * 60 * 60 * 1000));
-            
-            let weekNum = 3 + diffWeeks;
-            if (weekNum < 1) weekNum = 1;
-            if (weekNum > 39) weekNum = 39;
-            return weekNum;
-        }
+    // Mốc quy chuẩn: 00:00:00 Thứ Bảy ngày 12/09/2026 (Mốc chuyển giao Tuần 3 -> Tuần 4)
+    // Chu kỳ tuần sẽ bắt đầu từ 00:00 Thứ Bảy đến 23:59:59 Thứ Sáu tuần sau
+    const baseDate = new Date(2026, 8, 12, 0, 0, 0); 
+    const now = new Date();
+    
+    // Tính số ngày chênh lệch
+    const diffTime = now.getTime() - baseDate.getTime();
+    const diffWeeks = Math.floor(diffTime / (7 * 24 * 60 * 60 * 1000));
+    
+    // Từ 12/09 đến hết 18/09/2026 là Tuần 3
+    // Từ 19/09 đến hết 25/09/2026 là Tuần 4
+    // Từ 26/09 đến hết 02/10/2026 là Tuần 5
+    let weekNum = 3 + diffWeeks;
+    if (diffTime < 0 && weekNum < 1) weekNum = 1;
+    if (weekNum > 39) weekNum = 39;
+    return weekNum;
+}
 
         const currentActiveWeekNumber = getCurrentSchoolWeek();
         let currentSelectedWeek = `Tuần ${currentActiveWeekNumber}`;
